@@ -2,3 +2,4 @@ node_modules/
 dist
 src/privacy.fragment
 .idea/
+.DS_Store
