@@ -1,3 +1,3 @@
-import locale from './it.js';
+import locale from './fr.js';
 
 export default locale
