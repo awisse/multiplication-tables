@@ -2,6 +2,7 @@ import {shuffle} from '../helpers/array.js';
 import storage from '../ui/storage.js';
 import ui from '../ui/ui.js';
 import locale from '../locale/default.js';
+import {MAX_TABLE_INT} from '../constants.js';
 
 function buildTemplate(range, selected) {
 	let labels = "";
@@ -39,8 +40,12 @@ function generateMultitables(tabs) {
 
 	const allCombinations = [];
 	for (let i = 0; i < tabs.length; i++) {
-		for (let j = 2; j <= 10; j++) {
+		for (let j = 2; j <= MAX_TABLE_INT; j++) {
 			allCombinations.push([tabs[i], j]);
+            // Ask question in both directions
+            if (tabs[i] != j) {
+                allCombinations.push([j, tabs[i]])
+            }
 		}
 	}
 	shuffle(allCombinations);
@@ -50,7 +55,8 @@ function generateMultitables(tabs) {
 
 export default {
 	show(name, container, cbk) {
-		container.innerHTML = buildTemplate([2, 10], storage.fetch('multiPreferred'));
+		container.innerHTML = buildTemplate([2, MAX_TABLE_INT], 
+            storage.fetch('multiPreferred'));
 		container.querySelector('#sendChoice').addEventListener('click', function () {
 			let multitables = getChoice(container);
 			if (multitables.length === 0) {

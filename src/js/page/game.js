@@ -1,7 +1,8 @@
-import {getRandomHigher, getRandomLower, getRandomNumberExcept} from '../helpers/random.js';
+import {getRandomBetween} from '../helpers/random.js';
 import {shuffle} from '../helpers/array.js';
 import sounds from '../ui/sounds.js';
-import locale from '../locale/default.js'
+import locale from '../locale/default.js';
+import {MAX_TABLE_INT, MAX_PROPOSALS} from '../constants.js';
 
 function buildQuestion(numbers) {
 
@@ -20,11 +21,35 @@ function buildQuestion(numbers) {
 }
 
 function buildProposals(numbers) {
+    /* Principles for proposals:
+     * 1. They must be plausible (ex: 2*2 =? 102 ??, vs 6*7 =? 54 !!)
+     * 2. Single digit results: Remain single digit.
+     * 3. Double digit results: Remain double digit.
+     * 4. Trible digit results: Remain trible digit.
+     * 5. At most 2 * largest operand above or below.
+     */
 	const solution  = numbers[0] * numbers[1];
-	const proposals = [
-		solution, getRandomHigher(solution), getRandomLower(solution)
-	];
-	proposals.push(getRandomNumberExcept(proposals));
+    let min_rand, max_rand; 
+	const proposals = new Int16Array(MAX_PROPOSALS);
+
+    proposals[0] = solution;
+    switch (Math.trunc(Math.log10(solution))) {
+        case 0:
+            min_rand = 2;
+            max_rand = 10;
+            break;
+        case 1:
+            min_rand = Math.max(solution - 12, 6); // 2..5 not plausible
+            max_rand = Math.min(solution + 12, 108); // 9 * 12
+            break;
+        case 2:
+            /* 9 * 12 the only > 100 with one operand < 10 */
+            min_rand = Math.max(solution - 12, 100); 
+            max_rand = solution + 12;
+    }
+    for (let i = 1; i < MAX_PROPOSALS; i++) {
+        getRandomBetween(min_rand, max_rand, proposals);
+    }
 	shuffle(proposals);
 	return proposals;
 }
@@ -73,12 +98,17 @@ function start(
 	}
 ) {
 	onQuestionShown();
+    /* If all combinations have been asked, end the game. */
 	if (multitables.length === 0) {
 		onFinish();
 		return;
 	}
+
+    /* Take a combination from the list. */
 	const numbers = multitables.pop();
 	askQuestion(container, numbers, function (win) {
+        /* If wrong answer, insert the combination at the beginning
+         * of the list */
 		if (!win) {
 			multitables.unshift(numbers);
 		}
