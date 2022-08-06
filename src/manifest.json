@@ -1,7 +1,7 @@
 {
-  "short_name": "Tabelline",
-  "name": "Impara a memoria le tabelline",
-  "description": "Impara le tabelline con domande a risposta multipla",
+  "short_name": "Tables de multiplication",
+  "name": "Apprendre la table de multiplications",
+  "description": "Apprendre la table de multiplication avec un quiz aux choix multiples",
   "icons": [
     {
       "src": "img/icon-256.png",
