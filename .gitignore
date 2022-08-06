@@ -3,3 +3,4 @@ dist
 src/privacy.fragment
 .idea/
 .DS_Store
+*.diff
