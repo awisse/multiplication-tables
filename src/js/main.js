@@ -3,7 +3,6 @@ import game from './page/game.js';
 import ui from './ui/ui.js';
 import Scorekeeper from './ui/scorekeeper.js';
 import locale from './locale/default.js';
-import swInit from './sw-init.js';
 
 function getElement(id) {
 	return document.getElementById(id);
@@ -52,4 +51,3 @@ function main() {
 }
 
 main();
-swInit.register();
