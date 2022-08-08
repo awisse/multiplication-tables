@@ -1,6 +1,6 @@
-import {getRandomBetween} from '../helpers/random.js';
-import {shuffle} from '../helpers/array.js';
-import sounds from '../ui/sounds.js';
+import {getRandomBetween} from './random.js';
+import {shuffle} from './array.js';
+import sounds from '../view/sounds.js';
 import locale from '../locale/default.js';
 import {MAX_TABLE_INT, MAX_PROPOSALS} from '../constants.js';
 

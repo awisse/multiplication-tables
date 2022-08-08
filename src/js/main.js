@@ -1,7 +1,7 @@
-import askMultiToReview from './page/askMultiToReview.js';
-import game from './page/game.js';
-import ui from './ui/ui.js';
-import Scorekeeper from './ui/scorekeeper.js';
+import askMultiToReview from './model/askMultiToReview.js';
+import game from './model/game.js';
+import ui from './view/ui.js';
+import Scorekeeper from './model/scorekeeper.js';
 import locale from './locale/default.js';
 
 function getElement(id) {

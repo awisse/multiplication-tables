@@ -1,7 +1,7 @@
 export default {
-	pageTitle              : "Tables de multipliction",
-	metaDescription        : "Apprends les multiplication avec ce jeu",
-	endMessage             : "Tu termines avec le résultat %d",
+	pageTitle              : "Tables de multiplications",
+	metaDescription        : "Apprends les multiplications avec ce jeu",
+	endMessage             : "Ton pourcentage de réussite est de %d",
 	whatsYourName          : "Quel est ton nom?",
 	whichMultiTable        : "Quel(les) table(s) voulez vous pratiquer?",
 	letsStart              : "Commencer",

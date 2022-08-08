@@ -1,4 +1,4 @@
-import ui from '../ui/ui.js';
+import ui from '../view/ui.js';
 import locale from '../locale/default.js';
 
 const template = `

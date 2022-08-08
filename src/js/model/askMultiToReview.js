@@ -1,6 +1,6 @@
-import {shuffle} from '../helpers/array.js';
-import storage from '../ui/storage.js';
-import ui from '../ui/ui.js';
+import {shuffle} from '../model/array.js';
+import storage from '../model/storage.js';
+import ui from '../view/ui.js';
 import locale from '../locale/default.js';
 import {MAX_TABLE_INT} from '../constants.js';
 
