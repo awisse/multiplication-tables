@@ -55,6 +55,7 @@ function buildProposals(numbers) {
 }
 
 function askQuestion(container, numbers, callback) {
+    /* Display question and multiple choice answer */
 	container.innerHTML = buildQuestion(numbers);
 	container.querySelectorAll('.choice').forEach(a => {
 		function handlerClick(e) {
@@ -66,11 +67,12 @@ function askQuestion(container, numbers, callback) {
 			const solution = numbers[0] * numbers[1];
 			const win      = +this.getAttribute('data-number') === solution;
 			if (win) {
-				this.className += " is-clicked ";
+				this.className += " is-clicked "; /* Size increases x 1.2 */
 				sounds.success();
 			} else {
 				sounds.error();
 			}
+            /* Color selection for all answer checkboxes */
 			container.querySelectorAll('.choice').forEach(a => {
 				a.className += " " + (+a.getAttribute('data-number') === solution ? "is-correct" : "is-wrong");
 				a.setAttribute('data-inactive', '1');
@@ -113,6 +115,9 @@ function start(
 			multitables.unshift(numbers);
 		}
 		onUserChoose(win);
+        /* After timeout, call `start` recursively to ask a new question.
+         * For 100 questions, 100 recursive calls to `start`.
+         * Ouch! There must be a better way. */
 		setTimeout(() => {
 			start(container, multitables, {onQuestionShown, onUserChoose, onFinish});
 		}, 1500)

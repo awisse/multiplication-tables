@@ -17,7 +17,7 @@ function buildTemplate(range, selected) {
 		labels += `<label class="checkbox"><input type="checkbox" value="${i}" ${checked}><div>${i}</div></label>`;
 	}
 	return `
-<div class="askMultiTable input">
+<div class="input">
 	<p>${locale.whichMultiTable}</p>
 	${labels}
 	<br>
