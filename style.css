@@ -3,7 +3,7 @@
   font-family: 'Dosis';
   font-style: normal;
   font-weight: 600;
-  src: local(''),  /* Super Modern Browsers */ url('../assets/fonts/dosis-v17-latin-600.woff') format('woff');
+  src: local(''), url('../assets/fonts/dosis-v17-latin-600.woff') format('woff');
 }
 *,
 *:before,
@@ -24,6 +24,11 @@ body,
 .hidden {
   display: none;
 }
+#gameboard {
+    align-items: center;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
 body {
   overflow: hidden;
   font-family: 'Dosis', sans-serif;
@@ -43,7 +48,7 @@ body:before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url(../img/bkg.png);
+  background: url(../assets/img/bkg.png);
   background-position: center;
   background-size: cover;
   opacity: 0.2;
@@ -72,7 +77,12 @@ body:before {
   margin: 0;
   padding: 0;
   font-weight: 800;
-  transform: scale(1.4);
+  transform: scale(1.2);
+}
+.page-content h1 {
+    color: #fff;
+    font-size: 1em;
+    font-weight: 400;
 }
 .page-content {
   flex: 1 1 auto;
@@ -88,6 +98,43 @@ body:before {
   color: #fff;
   background: rgba(0, 0, 0, 0.2);
 }
+
+/* List of names */
+.name-list {
+    padding: 0;
+}
+li.names {
+    display: flex;
+    align-items: center;
+}
+
+li span {
+  display: inline-block;
+  padding: .2rem;
+  width: 250px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+input.name-select {
+    display: inline-block;
+    transform: scale(2);
+}
+.username {
+    display: inline-block;
+    padding-left: 1.5rem;
+    padding-right: 1rem;
+    width: 10rem;
+    color: #fff;
+    text-align: left;
+}
+.userscore {
+    display: inline;
+    padding: 0.5rem;
+    width: 5rem;
+    color: #fff;
+    text-align: right;
+}
+
 /* Score */
 .page-footer-left {
   float: left;
