@@ -12,23 +12,11 @@ class View {
         this.main = this.getElement('#gameboard');
         this.footer = this.getElement('#footer');
 
-        this.hideFooter();
 
         this.setTitle(locale.pageTitle);
 
-        /* Create start page objects ------------------------------*/
-        // Title of start page
-        this.namePageTitle = createElement('h1')
-        this.namePageTitle.textContent = locale.usersAndScores;
-
-        // Create input box for new name
-        this.nameInput = createElement('input');
-        this.nameInput.placeholder = locale.whatsYourName;
-        this.nameInput.name = 'username';
-
-        // Create list for existing names
-        this.nameList = createElement('ul', 'name-list');
-
+        this._setupNamesPage();
+        
         /* Create table selection page objects --------------------*/
 
 
@@ -38,6 +26,91 @@ class View {
 
 
     }
+
+    _setupNamesPage() {
+        //
+        // No footer on start page
+        this.hideFooter();
+        /* Create start page objects ------------------------------*/
+        // Title of names page
+        this.pageHeader = createElement('h1');
+        this.pageHeader.id = 'page-header';
+        this.pageHeader.textContent = locale.usersAndScores;
+
+        // Create input box for new name with submit button
+        // The Form
+        this.nameForm = createElement('form');
+        this.nameForm.id = 'name-form';
+        // The Edit Box
+        this.nameInput = createElement('input', 'username');
+        this.nameInput.placeholder = locale.whatsYourName;
+        this.nameInput.name = 'usernameInput';
+        this.nameInput.maxlength = 20;
+        this.nameInput.minlength = 1;
+        // The Button
+        this.submitNameButton = createElement('button', 'submit-user');
+        this.submitNameButton.textContent = locale.addUser; 
+        this.submitNameButton.name = 'usernameSubmit';
+
+        this.nameForm.append(this.nameInput, this.submitNameButton);
+
+        // Create list for existing names
+        this.nameList = createElement('ul', 'name-list');
+
+        // Put the page together
+        this.main.append(this.pageHeader, this.nameForm, this.nameList)
+
+        /* End start page */
+
+    }
+
+    _setupQuizPage() {
+        
+        // Empty main page
+        this._emptyMainPage();
+        
+        // The question before the first question
+        this.pageHeader.textContent = "Setting up page ...";
+
+    }
+
+    _resetNameInput() {
+        this.nameInput.value = ""
+    }
+
+    _loadStartPage() {
+        /* Display the start page */
+        // Set the header
+        this.pageHeader.textContent = locale.usersAndScores;
+
+        // Remove other content from main page.
+        this._emptyMainPage()
+
+    }
+
+    _emptyMainPage() {
+        /* Remove all page content excepte the header */
+        for (const element of this.main) {
+            // Keep header for all pages.
+            if (element.id !== 'page-header') {} 
+        } 
+    }
+
+    bindAddPlayer(handler) {
+        this.nameForm.addEventListener('submit', event => {
+            event.preventDefault();
+
+            if (this.nameInput.value) {
+                handler(this.nameInput.value);
+                this._resetNameInput();
+            }
+        }); 
+    }
+
+    bindDeletePlayer(handler) {
+        /* TODO */ 
+    }
+
 
     getElement(selector) {
         const element = document.querySelector(selector);
@@ -64,14 +137,11 @@ class View {
         }
     }
 
-    showStartPage(names) {
+    refreshNamesList(names) {
         /* Show the start page.
          * Create a listbox with `names` to choose from or enter a new name.
          * Show highscores. */
 
-        // Empty the page first
-        this.emptyMainSection();
-        
         // Create the list of names to display
         // Empty the list first
         while (this.nameList.firstChild) { 
@@ -80,18 +150,12 @@ class View {
 
         if (names.length === 0) {
             const p = createElement('p');
-            p.textContent = 'Aucun joueur enregistré! Ajoutez un joueur?';
+            p.textContent = locale.noticeNoPlayer;
             this.nameList.append(p);
         }
         else {
             names.forEach(user => {
                 const li = createElement('li', 'names');
-
-                const select = createElement('input', 'name-select');
-                select.type = 'radio';
-                select.name = 'name-select';
-                select.value = user.name;
-                select.id = user.name + "_id";
 
                 const label = createElement('label', 'username');
                 label.textContent = user.name;
@@ -100,41 +164,30 @@ class View {
                 const score = createElement('span', 'userscore');
                 score.textContent = user.score;
 
-                li.append(select, label, score);
+                const playButton = createElement('button', 'play');
+                playButton.textContent = locale.playButtonText;
+                playButton.id = user.name + "_id";
+
+                li.append(label, score, playButton);
                 this.nameList.append(li);
             });
         }
 
-        this.nameList.firstChild.getElementsByTagName("input")[0].checked = true;
+    }
 
-        // Put the page together
-        this.main.append(this.namePageTitle, this.nameInput, this.nameList)
+    showAlert(message) {
+        window.alert(message);
     }
 
 
 }
 
-
 function createElement(tag, className) {
-const element = document.createElement(tag)
+    /* Crete a new HTML element on the page */
+    const element = document.createElement(tag)
+    if (className) element.classList.add(className)
 
-if (className) element.classList.add(className)
-
-return element
-}
-
-function displayStartPage(container) {
-    /* 1. Display the start page with previous high scores.
-     * 2. Display "Add User" button 
-     * 3. Display "Start" button
-     * */
-}
-
-function enterName(default_name) {
-    /* Display an edit box that allows the user to enter a name 
-     * `default_name`: Most recent player from localStorage
-     * Validation: Only characters [A-Za-z-] in one word are allowed
-     * */
+    return element
 }
 
 function displayTableSelection(container, preselected) {

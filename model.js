@@ -5,33 +5,79 @@
  * 4. Load from localStorage
  * 5. Save to localStorage
  * */
-import {TESTING, MAX_TABLE_INT} from './constants.js'
+import {TESTING} from './constants.js'; 
+import {MAX_TABLE_INT, SUCCEED, FAIL, PLAYERS} from './constants.js';
 
 class Model {
 
     constructor() {
+        this._loadPlayers();
+    }
+
+    _loadPlayers() {
+        /* Retrieve names and high scores from localStorage */
+        this.players = getStorageItem(PLAYERS);
+
+        if (!this.players && TESTING) {
+            this.players = testPlayers();
+            this.players.sort(playerSort);
+        }
+
+        return this.players;
+    }
+
+    _savePlayers() {
+        this.onPlayersChanged(this.players);
+        setStorageItem(PLAYERS, this.players);
+    }
+
+    addPlayer(name) {
+        /* First check whether player name exists */
+        if (this._findPlayer(name) >= 0) {
+            return FAIL;
+        }
+
+        const new_player = {
+            name: name,
+            score: 0,
+            combinations: generateMultitables(),
+        }
+        this.players.push(new_player);
+        this._savePlayers();
+
+        return SUCCEED;
+    }
+
+    deletePlayer(name) {
+        /* Find the player */
+        player_index = this._findPlayer(name);
+        this.players.splice(player_index, 1);
+        this._savePlayers();
+    }
+        
+    _findPlayer(name) {
+
+        for (let i=0; i < this.players.length; i++) {
+            const player = this.players[i];
+            if (player.name === name) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    bindPlayersChanged(callback) {
+        this.onPlayersChanged = callback
     }
 
 
-    getPlayersAndScores() {
-        /* Retrieve names and high scores from localStorage */
-        var players;
-        if (TESTING) {
-            players = testPlayers()
-        } else {
-            players = getStorageItem(PLAYERS)
-        }
+    bindQuizAnswer(callback) {
 
-        players.sort(playerSort)
-
-        return players
     }
 
 }
 
 function testPlayers() {
-    /* Une liste de noms et scores pour tester */
-    // return [];
+    /* A list of player data for testing */
     let players = [ {name: 'Maman', 
                      score: 10754,
                      combinations: generateMultitables()},
@@ -88,14 +134,11 @@ function getStorageItem(name) {
     return value ? JSON.parse(value) : null;
 }
 
-function setStorageItem(name) {
-    
+function setStorageItem(name, item) {
+    /* Save the object `item` to localStorage under the `name`. */
     if (localStorage) {
-        localStorage.setItem(name, JSON.stringify(value));
+        localStorage.setItem(name, JSON.stringify(item));
     }
-}
-function computePairs(selectedTables) {
-    /* Compute all pairs of numbers for the selected tables */
 }
 
 function insertPair(pair) {

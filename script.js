@@ -4,11 +4,11 @@ import {View} from './view.js'
 
 function main() {
 
-    const model = new Model()
-    const view = new View()
-    const controller = new Controller(model, view)
+    const model = new Model();
+    const view = new View();
+    const controller = new Controller(model, view);
 
-    controller.start()
+    controller.start();
 }
 
 main()
