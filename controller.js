@@ -3,7 +3,7 @@
  * 2. Dispatches orders to the *view*.
  * 3. Queries *model* for data.
  * */
-import {SUCCEED, FAIL} from './constants.js';
+import {SUCCEED, FAIL, PLAY, DELETE} from './constants.js';
 
 class Controller {
 
@@ -16,6 +16,7 @@ class Controller {
 
         // Add bindings to objects in view
         this.view.bindAddPlayer(this.handleAddPlayer);
+        this.view.bindPlayDeleteButtonPressed(this.handlePlayDeletePressed);
 
     }
 
@@ -38,16 +39,20 @@ class Controller {
         }
     }
 
-    handleDeletePlayer = name => {
-        /* TODO: Work in progress */
-        const result = this.model.deletePlayer(name);
-    }
-
-    handlePlayPressed = () => {
-        /* TODO: The player is chosen.
-         * 1. Extract the name of the player
-         * 2. Load the combination for the player
-         * 3. Start the quiz page */ 
+    handlePlayDeletePressed = (name, state) => {
+        /* Either delete the player if Ctrl is pressed or
+         * start quiz for the player */
+        if (state === DELETE) {
+            this.model.deletePlayer(name);
+            this.view.showAlert(`${name} deleted`);
+        }
+        else {
+            if (state !== PLAY) {
+                throw `"state" must be "${PLAY}" or "${DELETE}"`;
+            }
+            /* TODO: Quiz start code here */
+            window.alert(`Quiz started for "${name}"`);
+        }
     }
 }
 

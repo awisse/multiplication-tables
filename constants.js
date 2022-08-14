@@ -8,6 +8,9 @@ export const TESTING = true;
 export const SUCCEED = 1;
 export const FAIL = 0;
 
+export const DELETE = 'delete';
+export const PLAY = 'play';
+
 /* Parameter names */
 /* Local Storage */
 export const PLAYERS = 'players'

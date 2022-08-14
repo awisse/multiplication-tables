@@ -10,6 +10,7 @@ export default {
 	howMuchIs              : "Combien fait ",
     usersAndScores         : "Joueurs et résultats",
     playButtonText         : "Jouer",
+    deleteButtonText       : "Effacer",
     noticeNoPlayer         : "Aucun joueur enregistré! Ajoutez un joueur?",
     addUser                : "Ajouter",
 }

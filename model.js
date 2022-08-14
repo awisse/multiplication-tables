@@ -50,7 +50,7 @@ class Model {
 
     deletePlayer(name) {
         /* Find the player */
-        player_index = this._findPlayer(name);
+        let player_index = this._findPlayer(name);
         this.players.splice(player_index, 1);
         this._savePlayers();
     }

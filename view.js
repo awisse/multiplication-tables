@@ -2,15 +2,16 @@
  * 1. Displaying data and controls to the user
  * 2. Playing sounds 
 */
-import locale from './locale/default.js'
+import locale from './locale/default.js';
+import {PLAY, DELETE} from './constants.js';
 
 class View {
 
     constructor(title) {
 
-        this.title = this.getElement('#mainTitle');
-        this.main = this.getElement('#gameboard');
-        this.footer = this.getElement('#footer');
+        this.title = getElement('#mainTitle');
+        this.main = getElement('#gameboard');
+        this.footer = getElement('#footer');
 
 
         this.setTitle(locale.pageTitle);
@@ -56,6 +57,12 @@ class View {
 
         // Create list for existing names
         this.nameList = createElement('ul', 'name-list');
+        this.nameList.id = 'name-list';
+        this.playOrDelete = PLAY;
+
+        // Toggle between "Play" and "Delete" for the button
+        document.addEventListener('keydown', handleMainKeyDown.bind(this));
+        document.addEventListener('keyup', handleMainKeyUp.bind(this));
 
         // Put the page together
         this.main.append(this.pageHeader, this.nameForm, this.nameList)
@@ -107,15 +114,13 @@ class View {
         }); 
     }
 
-    bindDeletePlayer(handler) {
-        /* TODO */ 
-    }
+    bindPlayDeleteButtonPressed(handler) {
+        function playDeleteHandler(event) { 
+            event.preventDefault();
+            handler(event.target.parentNode.id, this.playOrDelete);
+        }
 
-
-    getElement(selector) {
-        const element = document.querySelector(selector);
-
-        return element;
+        this.nameList.addEventListener('click', playDeleteHandler.bind(this));
     }
 
     setTitle(title) {
@@ -156,6 +161,7 @@ class View {
         else {
             names.forEach(user => {
                 const li = createElement('li', 'names');
+                li.id = user.name;
 
                 const label = createElement('label', 'username');
                 label.textContent = user.name;
@@ -175,11 +181,18 @@ class View {
 
     }
 
+
     showAlert(message) {
         window.alert(message);
     }
 
 
+}
+
+function getElement(selector) {
+    const element = document.querySelector(selector);
+
+    return element;
 }
 
 function createElement(tag, className) {
@@ -188,6 +201,51 @@ function createElement(tag, className) {
     if (className) element.classList.add(className)
 
     return element
+}
+
+function handleMainKeyUp(event) {
+    /* "Play" button shows "Play".
+     * Click deletes player. */
+    if (event.code === "AltLeft") {
+        togglePlayDelete.bind(this)(PLAY);
+    }
+}
+
+function handleMainKeyDown(event) {
+    /* "Play" button shows "Delete".
+     * Click starts quiz for chosen player. */
+    if (event.shiftKey && (event.code === "AltLeft")) {
+        togglePlayDelete.bind(this)(DELETE);
+    }
+}
+
+function togglePlayDelete(state) {
+    /* Depending on `state`, change text of "Play" buttons in the 
+     * nameList. */
+    let playButtonText; 
+
+    /* Check whether nameList is displayed */
+    if (!document.getElementById('name-list')) {
+        return; 
+    }
+
+    if (state === PLAY) {
+        playButtonText = locale.playButtonText;
+    }
+    else {
+        if (state === DELETE) {
+            playButtonText = locale.deleteButtonText;
+        } 
+        else {
+            throw `Parameter "${state}" not in ("${PLAY}", "${DELETE}")`
+        }
+    }
+
+    for (const player of this.nameList.children) {
+        player.lastElementChild.textContent = playButtonText;
+    }
+
+    this.playOrDelete = state;
 }
 
 function displayTableSelection(container, preselected) {
