@@ -61,7 +61,6 @@ class View {
     // Create list for existing names
     this.nameList = createElement('ul', 'names');
     this.nameList.id = 'name-list';
-    this.playOrDelete = PLAY;
 
     // Toggle between "Play" and "Delete" for the button
     document.addEventListener('keydown', handleMainKeyDown.bind(this));
@@ -175,7 +174,7 @@ class View {
         this.nameList.append(li);
       });
     }
-
+    this.playOrDelete = PLAY;
   }
 
   displayQuestion(problem) {
