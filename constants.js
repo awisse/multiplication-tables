@@ -12,6 +12,9 @@ export const DELETE = 'delete';
 export const PLAY = 'play';
 
 /* Parameter names */
+
+export const MAX_COMBINATIONS = 100; // Number of combinations to be asked
+
 /* Local Storage */
-export const PLAYERS = 'players'
+export const PLAYERS = 'players';
 

@@ -4,6 +4,8 @@
  * 3. Queries *model* for data.
  * */
 import {SUCCEED, FAIL, PLAY, DELETE} from './constants.js';
+import {Quiz} from './model.js';
+import locale from './locale/default.js';
 
 class Controller {
 
@@ -44,15 +46,32 @@ class Controller {
          * start quiz for the player */
         if (state === DELETE) {
             this.model.deletePlayer(name);
-            this.view.showAlert(`${name} deleted`);
+            this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
         }
         else {
             if (state !== PLAY) {
                 throw `"state" must be "${PLAY}" or "${DELETE}"`;
             }
             /* TODO: Quiz start code here */
-            window.alert(`Quiz started for "${name}"`);
+            const combinations =  this.model.getCombinations(name);
+            this.quiz = new Quiz(name, combinations);
+            this.view.play(name);
         }
+    }
+
+    gameOver() {
+        }
+
+    nextQuestion = () => {
+        const question = this.quiz.nextQuestion();
+        if (!question) {
+            /* TODO: Implement Game Over */
+        }
+
+        /* TODO: Implement display next question and handle answer */
+        const proposals = this.quiz.getProposals(question);
+
+        /* TODO: Who checks for correct answer? View? Model? Controller? */
     }
 }
 

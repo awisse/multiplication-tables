@@ -26,6 +26,7 @@ class Model {
         return this.players;
     }
 
+
     _savePlayers() {
         this.onPlayersChanged(this.players);
         setStorageItem(PLAYERS, this.players);
@@ -65,14 +66,55 @@ class Model {
         }
         return -1;
     }
+
+    getCombinations(name) {
+
+        const player = this._findPlayer(name);
+        return player.combinations;
+    }
+
     bindPlayersChanged(callback) {
         this.onPlayersChanged = callback
     }
 
-
+    
     bindQuizAnswer(callback) {
 
     }
+
+}
+
+class Quiz {
+
+    constructor(number, combinations) {
+        /* Class for a quiz */
+        this.counter = number;
+        this.combinations = combinations;
+        }
+
+    nextQuestion() {
+        
+        const count = this.combinations.length;
+
+        this.counter -= 1;
+        if (this.counter === 0) {
+            /* End of quiz */
+            return null
+        }
+
+        selected = Math.floor(count * Math.random());
+        pair = combinations.at(selected);
+
+        problem = {question: pair,
+                   answer: pair[0] * pair[1]}
+
+        return problem;
+    }
+
+    getProposals(problem) {
+        /* TODO: Build and return proposals for problem */
+    }
+
 
 }
 
@@ -162,6 +204,7 @@ function checkAnswer(pair, user_selection) {
 
 export { 
     Model, 
+    Quiz,
     /* Export for testing only */
     testPlayers,
     playerSort,

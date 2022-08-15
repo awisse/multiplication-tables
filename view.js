@@ -13,8 +13,12 @@ class View {
         this.main = getElement('#gameboard');
         this.footer = getElement('#footer');
 
-
+        /* Game title on top */
         this.setTitle(locale.pageTitle);
+
+        /* Description header of game pages */
+        this.pageHeader = createElement('h1');
+        this.pageHeader.id = 'page-header';
 
         this._setupNamesPage();
         
@@ -24,18 +28,17 @@ class View {
         /* Create quiz page objects -------------------------------*/
         
 
-
-
     }
 
     _setupNamesPage() {
         //
         // No footer on start page
         this.hideFooter();
+
+        this._emptyMainSection();
+
         /* Create start page objects ------------------------------*/
         // Title of names page
-        this.pageHeader = createElement('h1');
-        this.pageHeader.id = 'page-header';
         this.pageHeader.textContent = locale.usersAndScores;
 
         // Create input box for new name with submit button
@@ -56,7 +59,7 @@ class View {
         this.nameForm.append(this.nameInput, this.submitNameButton);
 
         // Create list for existing names
-        this.nameList = createElement('ul', 'name-list');
+        this.nameList = createElement('ul', 'names');
         this.nameList.id = 'name-list';
         this.playOrDelete = PLAY;
 
@@ -71,13 +74,13 @@ class View {
 
     }
 
-    _setupQuizPage() {
+    _setupQuizPage(name) {
         
         // Empty main page
-        this._emptyMainPage();
+        this._emptyMainSection();
         
         // The question before the first question
-        this.pageHeader.textContent = "Setting up page ...";
+        this.pageHeader.textContent = `Setting up quiz page for "${name}" ...`;
 
     }
 
@@ -95,11 +98,12 @@ class View {
 
     }
 
-    _emptyMainPage() {
-        /* Remove all page content excepte the header */
-        for (const element of this.main) {
-            // Keep header for all pages.
-            if (element.id !== 'page-header') {} 
+    _emptyMainSection() {
+        for (const element of Array.from(this.main.children)) {
+            // Always keep header.
+            if (element.id !== 'page-header') {
+                this.main.removeChild(element)
+            } 
         } 
     }
 
@@ -135,13 +139,6 @@ class View {
         this.footer.classList.remove('hidden')
     }
     
-    emptyMainSection() {
-        /* Empty the main section of all elements. */
-        while (this.main.firstChild) {
-            this.main.removeChild(this.main.firstChild);
-        }
-    }
-
     refreshNamesList(names) {
         /* Show the start page.
          * Create a listbox with `names` to choose from or enter a new name.
@@ -181,8 +178,18 @@ class View {
 
     }
 
+    displayQuestion(problem) {
+        /* Display the problem to the user with answer interface */
+    }
+
+    play(name, combinations) {
+        /* Setup play page */
+        this._setupQuizPage(name);
+    }
+
 
     showAlert(message) {
+        /* TODO: More sophisticated dialogs in the future */
         window.alert(message);
     }
 

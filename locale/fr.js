@@ -11,6 +11,7 @@ export default {
     usersAndScores         : "Joueurs et résultats",
     playButtonText         : "Jouer",
     deleteButtonText       : "Effacer",
+    deletedWord            : "effacé",
     noticeNoPlayer         : "Aucun joueur enregistré! Ajoutez un joueur?",
     addUser                : "Ajouter",
 }
