@@ -5,9 +5,7 @@
   font-weight: 600;
   src: local(''), url('../assets/fonts/dosis-v17-latin-600.woff') format('woff');
 }
-*,
-*:before,
-*:after {
+*, *:before, *:after {
   box-sizing: border-box;
 }
 h1,
@@ -25,9 +23,9 @@ body,
   display: none;
 }
 #gameboard {
-    align-items: center;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  align-items: center;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 body {
   overflow: hidden;
@@ -80,9 +78,9 @@ body:before {
   transform: scale(1.2);
 }
 .page-content h1 {
-    color: #fff;
-    font-size: 1em;
-    font-weight: 400;
+  color: #fff;
+  font-size: 1em;
+  font-weight: 400;
 }
 .page-content {
   flex: 1 1 auto;
@@ -100,33 +98,33 @@ body:before {
 }
 /* Add Name Form */
 #name-form {
-    display: flex;
-    margin-bottom: 2rem;
-    /* width: 400px; */
+  display: flex;
+  margin-bottom: 2rem;
+  /* width: 400px; */
 }
 input.username {
-    display: inline-block;
-    color: #000;
-    /* font-size: 1rem; */
-    width: 250px;
-    height: 2rem;
-    align-self: center;
-    color: #000;
-    margin-right: 1rem;
+  display: inline-block;
+  color: #000;
+  /* font-size: 1rem; */
+  width: 250px;
+  height: 2rem;
+  align-self: center;
+  color: #000;
+  margin-right: 1rem;
 }
 button.submit-user {
-    display: inline-block;
-    box-shadow: none;
-    width: 100px;
+  display: inline-block;
+  box-shadow: none;
+  width: 100px;
 }
 
 /* List of names */
 .names {
-    padding: 0;
+  padding: 0;
 }
 li.names {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 li span {
@@ -137,23 +135,23 @@ li span {
   border: 2px solid transparent;
 }
 button.play {
-    display: inline-block;
-    box-shadow: none;
-    width: 100px;
-    padding: 0.2em 1em 0.2em 1em;
+  display: inline-block;
+  box-shadow: none;
+  width: 100px;
+  padding: 0.2em 1em 0.2em 1em;
 }
 .username {
-    display: inline-block;
-    width: 10rem;
-    color: #fff;
-    text-align: left;
+  display: inline-block;
+  width: 10rem;
+  color: #fff;
+  text-align: left;
 }
 .userscore {
-    display: inline;
-    padding-right: 1rem;
-    width: 100%;
-    color: #fff;
-    text-align: right;
+  display: inline;
+  padding-right: 1rem;
+  width: 100%;
+  color: #fff;
+  text-align: right;
 }
 
 /* Score */
