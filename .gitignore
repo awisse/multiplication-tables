@@ -4,4 +4,4 @@ src/privacy.fragment
 .idea/
 .DS_Store
 *.diff
-test.js
+test.*
