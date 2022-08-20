@@ -2,8 +2,10 @@
  * 1. Displaying data and controls to the user
  * 2. Playing sounds 
  */
+'use strict';
 import locale from './locale/default.js';
-import {PLAY, DELETE} from './constants.js';
+import {PLAY, DELETE, TESTING} from './constants.js';
+import {sounds} from './resources.js';
 
 class View {
 
@@ -17,7 +19,7 @@ class View {
     this.setTitle(locale.pageTitle);
 
     /* Description header of game pages */
-    this.pageHeader = createElement('h1');
+    this.pageHeader = createElement('h1', 'page-title');
     this.pageHeader.id = 'page-header';
 
     this._setupNamesPage();
@@ -78,9 +80,15 @@ class View {
     // Empty main page
     this._emptyMainSection();
 
+    // Define elements of page
+    this.quizProblemDisplay = createElement('div', 'quiz-question');
     // The question before the first question
-    this.pageHeader.textContent = `Setting up quiz page for "${name}" ...`;
+    this.pageHeader.textContent = `${name}, ${locale.howMuchIs}`;
+    this.pageHeader.append(this.quizProblemDisplay, "?");
 
+    this.proposalSection = createElement('div', 'choices');
+    this.main.append(this.proposalSection);
+    
   }
 
   _resetNameInput() {
@@ -124,6 +132,14 @@ class View {
     }
 
     this.nameList.addEventListener('click', playDeleteHandler.bind(this));
+  }
+
+  bindDeleteAllPlayers(handler) {
+    this.deleteAllPlayers = handler;
+  }
+
+  bindHandleAnswer(handler) {
+    this.handleAnswer = handler
   }
 
   setTitle(title) {
@@ -174,18 +190,54 @@ class View {
         this.nameList.append(li);
       });
     }
+    /* After refreshing the list, the state is PLAY */
     this.playOrDelete = PLAY;
   }
 
-  displayQuestion(problem) {
+  displayProblem(problem) {
     /* Display the problem to the user with answer interface */
+    const [x, y] = problem.pair;
+    this.quizProblemDisplay.textContent = `${x} x ${y}`;
+
+    /* Empty proposal section */
+    for (const element of Array.from(this.proposalSection.children)) {
+      this.proposalSection.removeChild(element);
+    }
+
+    for (const proposal of problem.proposals) {
+      const choice = createElement("button", "choice");
+      choice.textContent = `${proposal}`;
+      choice.value = proposal;
+      choice.addEventListener('click', this.handleAnswer);
+      this.proposalSection.append(choice);
+    }
+
   }
 
-  play(name, combinations) {
+  displaySuccess(button) {
+    /* Show display of correct answer: Increase size of button. */
+    sounds.pass.play();
+    button.classList.add("is-clicked", "is-correct");
+  }
+
+  displayFailedAnswerCorrectly(correctAnswer) {
+    /* Highlight correct answer after wrong answer given by player */
+    sounds.fail.play();
+    for (const button of Array.from(this.proposalSection.children)) {
+      if (parseInt(button.value, 10) === correctAnswer) {
+        button.classList.add("is-correct");
+      } else {
+        button.classList.add("is-wrong");
+      }
+    }
+  }
+    
+
+
+  play(name) {
     /* Setup play page */
     this._setupQuizPage(name);
   }
-
 
   showAlert(message) {
     /* TODO: More sophisticated dialogs in the future */
@@ -220,6 +272,11 @@ function handleMainKeyUp(event) {
 function handleMainKeyDown(event) {
   /* "Play" button shows "Delete".
    * Click starts quiz for chosen player. */
+
+  /* Delete all players, for testing purposes only */
+  if (TESTING && event.ctrlKey && (event.key == "d")) {
+    this.deleteAllPlayers();
+  }
   if (event.shiftKey && (event.code === "AltLeft")) {
     togglePlayDelete.bind(this)(DELETE);
   }

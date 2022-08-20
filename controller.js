@@ -3,7 +3,9 @@
  * 2. Dispatches orders to the *view*.
  * 3. Queries *model* for data.
  * */
-import {SUCCEED, FAIL, PLAY, DELETE} from './constants.js';
+'use strict';
+import {FAIL, PLAY, DELETE, MAX_COMBINATIONS} from './constants.js';
+import {ANSWER_DELAY} from './constants.js';
 import {Quiz} from './model.js';
 import locale from './locale/default.js';
 
@@ -19,6 +21,8 @@ class Controller {
     // Add bindings to objects in view
     this.view.bindAddPlayer(this.handleAddPlayer);
     this.view.bindPlayDeleteButtonPressed(this.handlePlayDeletePressed);
+    this.view.bindDeleteAllPlayers(this.handleDeleteAllPlayers);
+    this.view.bindHandleAnswer(this.handleAnswer);
 
   }
 
@@ -45,33 +49,55 @@ class Controller {
     /* Either delete the player if Ctrl is pressed or
      * start quiz for the player */
     if (state === DELETE) {
-      this.model.deletePlayer(name);
-      this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
+      if (this.model.deletePlayer(name)) {
+        this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
+      }
     }
     else {
       if (state !== PLAY) {
         throw `"state" must be "${PLAY}" or "${DELETE}"`;
       }
-      /* TODO: Quiz start code here */
+      /* Quiz start code here */
       const combinations =  this.model.getCombinations(name);
-      this.quiz = new Quiz(name, combinations);
+      this.quiz = new Quiz(name, MAX_COMBINATIONS, combinations);
+      this.quiz.bindTimeout(this.handleFail.bind(this));
+      this.quiz.bindGameOver(this.gameOver);
       this.view.play(name);
+      this.newProblem();
     }
   }
 
-  gameOver() {
+  handleDeleteAllPlayers = () => {
+    this.view.showAlert("All players will be deleted");
+    this.model.deleteAllPlayers();
   }
 
-  nextQuestion = () => {
-    const question = this.quiz.nextQuestion();
-    if (!question) {
-      /* TODO: Implement Game Over */
+  handleFail = () => {
+    /* Two cases: 
+     * 1. Player took too long.
+     * 2. Player chose wrong answer */
+    this.view.displayFailedAnswerCorrectly(this.quiz.problem.solution);
+    const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
+  }
+
+  newProblem = () => {
+    this.quiz.nextQuestion();
+    this.view.displayProblem(this.quiz.problem);
+  }
+
+  gameOver = (score, percentage) => {
+    /* Display final score and update player score */
+  }
+
+  handleAnswer = event => {
+    /* The user clicked on one of the multiple choice answers */
+    const clicked = event.target;
+    if (this.quiz.checkAnswer(parseInt(clicked.value, 10))) {
+      this.view.displaySuccess(clicked);
+      const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
+    } else {
+      this.handleFail();
     }
-
-    /* TODO: Implement display next question and handle answer */
-    const proposals = this.quiz.getProposals(question);
-
-    /* TODO: Who checks for correct answer? View? Model? Controller? */
   }
 }
 

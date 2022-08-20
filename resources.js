@@ -2,7 +2,7 @@
 
 /* Sounds to play with game */
 export const sounds = {
-  pass: new Audio("assets/sounds/bleep.wav"), 
+  pass: new Audio("assets/sounds/pass.wav"), 
   fail: new Audio("assets/sounds/fail.wav"),
   success: new Audio("assets/sounds/success.wav")
 };

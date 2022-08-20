@@ -77,6 +77,13 @@ body:before {
   font-weight: 800;
   transform: scale(1.2);
 }
+h1.page-title {
+  display: flex;
+  justify-content: center;
+}
+div.quiz-question {
+  margin: 0 0.2em 0 0.2em;
+}
 .page-content h1 {
   color: #fff;
   font-size: 1em;
@@ -187,28 +194,26 @@ button.play {
   margin-top: -0.25em;
 }
 .choices {
+  display: flex;
   margin: 0.5em auto 0 auto;
   font-size: 1.1em;
 }
 /* Checkbox choice result */
 .choice {
-  box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.4);
-  font-size: 2em;
-  display: inline-block;
-  width: 2em;
-  height: 2em;
-  line-height: 1.7em; /* Number position inside circle */
-  border-radius: 2em; /* Circle */
-  position: relative; /* One after the other */
-  border: 6px solid #fff;
-  background: #f6940d; /* Orange */
+  font-size: 1.2em;
+  font-weight: 600;
+  background: #f6940d;
   color: #fff;
-  margin: 0.1em;
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 1.25em;
+  border: 6px solid #fff;
   cursor: pointer;
-  transform: scale(0.99);
-  transition: background 0.5s ease, opacity 0.5s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin: 0.2em;
   user-select: none;
+  transition: background 0.5s ease, opacity 0.5s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 /* Green */
 .choice.is-correct {
   background: #6fa621;
