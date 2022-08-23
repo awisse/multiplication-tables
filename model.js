@@ -7,13 +7,13 @@
  * */
 'use strict';
 import {TESTING} from './constants.js'; 
-import {MAX_TABLE_INT, MAX_PROPOSALS} from './constants.js';
+import {MAX_TABLE_INT, MAX_PROPOSALS, CORRECT_POINTS} from './constants.js';
 import {TIMEOUT}  from './constants.js';
 import {SUCCEED, FAIL, PLAYERS} from './constants.js';
 
 import getRandomBetween from './random.js';
 
-class Model {
+class Players {
 
   constructor() {
     this._loadPlayers();
@@ -27,8 +27,6 @@ class Model {
       this.players = testPlayers();
       this.players.sort(playerSort);
     }
-
-    return this.players;
   }
 
 
@@ -96,35 +94,60 @@ class Model {
     this.onPlayersChanged = callback
   }
 
+  updateCombinations() {
+  }
+
+
 }
 
 class Quiz {
 
   constructor(name, sample_count, combinations) {
     /* Class for a quiz */
-    this.sample_count = this.counter = sample_count;
+    this.sampleCount = this.counter = sample_count;
     this.combinations = combinations;
 
     this.score = 0;
+    this.correctAnswers = 0;
     this.timeout = undefined;
     this.timer = new Timer();
     this.currentProblem = undefined;
   }
 
   get problem() {
-    return this.currentProblem
+    return this.currentProblem;
+  }
+
+  get currentScore() {
+    return this.score;
+  }
+
+  get pctCompleted () {
+    return 1.0 - this.counter / this.sampleCount;
   }
 
   start() {
     /* Start the timer and problem handler */
   }
 
-  gameOver() {
-    /* */
-  }
-
   checkAnswer(answer) {
-    return (answer === this.currentProblem.solution);
+    /* Checks the answer and updates the score 
+     * `CORRECT_POINTS` for correct answer plus percentage of `TIMEOUT` delay
+     * not used times `CORRECT_POINTS`
+     */
+    // Take timestamp first, even if potentially unused.
+    const speed = 1.0 - this.timer.elapsed / TIMEOUT;
+
+    const isCorrect = (answer === this.currentProblem.solution);
+    if (isCorrect) {
+      this.correctAnswers += 1;
+      this.score += CORRECT_POINTS;
+      this.score += Math.round(CORRECT_POINTS * speed);
+      this.removeCombination();
+    } else {
+      this.addCombination();
+    }
+    return isCorrect;
   }
 
   bindTimeout(callback) {
@@ -153,8 +176,7 @@ class Quiz {
     this.cancelTimeout();
 
     /* Select the pair of numbers from this.combinations */
-    const count = this.combinations.length;
-    const selected = Math.floor(count * Math.random());
+    const selected = getRandomIndex(this.combinations);
     const pair = this.combinations.at(selected);
 
     this.currentProblem = {
@@ -167,21 +189,42 @@ class Quiz {
 
     this.timer.reset();
   }
+
+  addCombination() {
+    /* Add problem to array of combinations (usually after missed answer) */
+    const ix = getRandomIndex(this.combinations);
+    this.combinations.splice(ix, 0, this.currentProblem.pair);
+  }
+
+  removeCombination() {
+    /* Remove problem from array of combinations, if at least one remains */
+    const currentPair = this.currentProblem.pair;
+
+    function eq(pair) {
+      return (pair[0] === currentPair[0] && pair[1] === currentPair[1]);
+    }
+
+    const first = this.combinations.findIndex(eq);
+    const second = this.combinations.slice(first + 1).findIndex(eq);
+    if (second > 0) {
+      this.combinations.splice(first, 1);
+    }
+  }
 }
 
 class Timer {
   /* Implement a simple stopwatch of milliseconds */
   constructor () {
-    this.time = new Date();
     this.reset();
   }
 
   reset() {
-    this.start = this.time.getTime();
+    this.start = Date.now();
   }
 
-  elapsed() {
-    var duration = this.time.getTime() - this.start();
+  get elapsed() {
+    /* Elapsed time in milliseconds */
+    var duration = Date.now() - this.start;
     return duration;
   }
 }
@@ -225,11 +268,7 @@ function generateMultitables(repetitions=3) {
   for (let i = 2; i < MAX_TABLE_INT; i++) {
     for (let j = 2; j <= MAX_TABLE_INT; j++) {
       for (let k=0; k<3; k++) {
-        allCombinations.push([i, j]);
-        // Ask question in both directions
-        if (i != j) {
-          allCombinations.push([j, i])
-        }
+        allCombinations.push([i, j], [j, i]); 
       }
     }
   }
@@ -242,6 +281,11 @@ function shuffleArray(arr) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+}
+
+function getRandomIndex(arr) {
+  const selected = Math.floor(arr.length * Math.random());
+  return selected;
 }
 
 function buildProposals(numbers) {
@@ -314,7 +358,7 @@ function checkAnswer(pair, user_selection) {
 }
 
 export { 
-  Model, 
+  Players, 
   Quiz,
   /* Export for testing only */
   testPlayers,

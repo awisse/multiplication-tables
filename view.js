@@ -24,12 +24,6 @@ class View {
 
     this._setupNamesPage();
 
-    /* Create table selection page objects --------------------*/
-
-
-    /* Create quiz page objects -------------------------------*/
-
-
   }
 
   _setupNamesPage() {
@@ -80,14 +74,49 @@ class View {
     // Empty main page
     this._emptyMainSection();
 
-    // Define elements of page
+    // Define Section that displays the question
     this.quizProblemDisplay = createElement('div', 'quiz-question');
-    // The question before the first question
+
+    // The question 
     this.pageHeader.textContent = `${name}, ${locale.howMuchIs}`;
     this.pageHeader.append(this.quizProblemDisplay, "?");
 
+    // Define the section that shows the proposals
     this.proposalSection = createElement('div', 'choices');
     this.main.append(this.proposalSection);
+
+    // Empty footer
+    for (const element of Array.from(this.footer.children)) {
+      this.footer.removeChild(element);
+    }
+
+    // Progressbar with its label
+    const progressBox = createElement('div', 'scorebox');
+    // Label
+    const progressLabel = createElement('label', 'username');
+    progressLabel.htmlFor = 'progress-bar';
+    progressLabel.textContent = locale.progressLabel;
+    // Bar 
+    this.progress = createElement('progress', 'progressbar');
+    this.progress.id = 'progress-bar';
+    this.progress.max = "1";
+    this.progress.value = "0";
+
+    progressBox.append(progressLabel, this.progress);
+
+    // Score with its label
+    const scoreBox = createElement('div', 'scorebox');
+    const scoreLabel = createElement('span', 'username');
+    scoreLabel.textContent = locale.userScore;
+    this.scoreValue = createElement('span', 'quizscore');
+    this.scoreValue.textContent = "0";
+    scoreBox.append(scoreLabel, this.scoreValue);
+
+    this.footer.append(progressBox, scoreBox);
+    
+    // Show footer, progressbar and score
+    this.showFooter();
+
     
   }
 
@@ -139,7 +168,7 @@ class View {
   }
 
   bindHandleAnswer(handler) {
-    this.handleAnswer = handler
+    this.handleAnswer = handler;
   }
 
   setTitle(title) {
@@ -147,11 +176,11 @@ class View {
   }
 
   hideFooter() {
-    this.footer.classList.add('hidden')
+    this.footer.classList.add('hidden');
   }
 
   showFooter() {
-    this.footer.classList.remove('hidden')
+    this.footer.classList.remove('hidden');
   }
 
   refreshNamesList(names) {
@@ -171,20 +200,20 @@ class View {
       this.nameList.append(p);
     }
     else {
-      names.forEach(user => {
+      names.forEach(player => {
         const li = createElement('li', 'names');
-        li.id = user.name;
+        li.id = player.name;
 
         const label = createElement('label', 'username');
-        label.textContent = user.name;
-        label.htmlFor = user.name + "_id";
+        label.textContent = player.name;
+        label.htmlFor = player.name + "_id";
 
         const score = createElement('span', 'userscore');
-        score.textContent = user.score;
+        score.textContent = player.score;
 
         const playButton = createElement('button', 'play');
         playButton.textContent = locale.playButtonText;
-        playButton.id = user.name + "_id";
+        playButton.id = player.name + "_id";
 
         li.append(label, score, playButton);
         this.nameList.append(li);
@@ -232,7 +261,11 @@ class View {
     }
   }
     
-
+  updateProgress(score, percent) {
+    /* Update the progressbar and the score values */
+    this.progress.value = percent;
+    this.scoreValue.textContent = `${score}`;
+  }
 
   play(name) {
     /* Setup play page */

@@ -11,12 +11,12 @@ import locale from './locale/default.js';
 
 class Controller {
 
-  constructor(model, view) {
-    this.model = model;
+  constructor(players, view) {
+    this.players = players;
     this.view = view;
 
-    // Add bindings to model
-    this.model.bindPlayersChanged(this.onPlayersChanged);
+    // Add bindings to players
+    this.players.bindPlayersChanged(this.onPlayersChanged);
 
     // Add bindings to objects in view
     this.view.bindAddPlayer(this.handleAddPlayer);
@@ -27,7 +27,7 @@ class Controller {
   }
 
   start() {
-    this.view.refreshNamesList(this.model.players);
+    this.view.refreshNamesList(this.players.players);
   }
 
   onPlayersChanged = players => {
@@ -35,12 +35,12 @@ class Controller {
   }
 
   handleAddPlayer = name => {
-    const result = this.model.addPlayer(name);
+    const result = this.players.addPlayer(name);
     if (result === FAIL) {
       this.view.showAlert(`Le nom "${name}" existe déjà!`);
     }
     else {
-      this.model.addPlayer(name);
+      this.players.addPlayer(name);
       this.start();
     }
   }
@@ -49,7 +49,7 @@ class Controller {
     /* Either delete the player if Ctrl is pressed or
      * start quiz for the player */
     if (state === DELETE) {
-      if (this.model.deletePlayer(name)) {
+      if (this.players.deletePlayer(name)) {
         this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
       }
     }
@@ -58,7 +58,7 @@ class Controller {
         throw `"state" must be "${PLAY}" or "${DELETE}"`;
       }
       /* Quiz start code here */
-      const combinations =  this.model.getCombinations(name);
+      const combinations =  this.players.getCombinations(name);
       this.quiz = new Quiz(name, MAX_COMBINATIONS, combinations);
       this.quiz.bindTimeout(this.handleFail.bind(this));
       this.quiz.bindGameOver(this.gameOver);
@@ -69,7 +69,7 @@ class Controller {
 
   handleDeleteAllPlayers = () => {
     this.view.showAlert("All players will be deleted");
-    this.model.deleteAllPlayers();
+    this.players.deleteAllPlayers();
   }
 
   handleFail = () => {
@@ -78,9 +78,11 @@ class Controller {
      * 2. Player chose wrong answer */
     this.view.displayFailedAnswerCorrectly(this.quiz.problem.solution);
     const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
+    // this.
   }
 
   newProblem = () => {
+    this.view.updateProgress(this.quiz.currentScore, this.quiz.pctCompleted);
     this.quiz.nextQuestion();
     this.view.displayProblem(this.quiz.problem);
   }
@@ -98,6 +100,7 @@ class Controller {
     } else {
       this.handleFail();
     }
+    this.players.updateCombinations();
   }
 }
 

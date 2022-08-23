@@ -1,13 +1,13 @@
 'use strict';
 import {Controller} from './controller.js'
-import {Model} from './model.js'
+import {Players} from './model.js'
 import {View} from './view.js'
 
 function main() {
 
-  const model = new Model();
+  const players = new Players();
   const view = new View();
-  const controller = new Controller(model, view);
+  const controller = new Controller(players, view);
 
   controller.start();
 }
