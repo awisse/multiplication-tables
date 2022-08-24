@@ -23,6 +23,7 @@ class Controller {
     this.view.bindPlayDeleteButtonPressed(this.handlePlayDeletePressed);
     this.view.bindDeleteAllPlayers(this.handleDeleteAllPlayers);
     this.view.bindHandleAnswer(this.handleAnswer);
+    this.view.bindRestart(this.play);
 
   }
 
@@ -57,14 +58,18 @@ class Controller {
       if (state !== PLAY) {
         throw `"state" must be "${PLAY}" or "${DELETE}"`;
       }
-      /* Quiz start code here */
-      const combinations =  this.players.getCombinations(name);
-      this.quiz = new Quiz(name, MAX_COMBINATIONS, combinations);
-      this.quiz.bindTimeout(this.handleFail.bind(this));
-      this.quiz.bindGameOver(this.gameOver);
-      this.view.play(name);
-      this.newProblem();
+      this.play(name);
     }
+  }
+
+  play = (name) => {
+    /* Quiz start code here */
+    const combinations =  this.players.getCombinations(name);
+    this.quiz = new Quiz(name, MAX_COMBINATIONS, combinations);
+    this.quiz.bindTimeout(this.handleFail.bind(this));
+    this.quiz.bindGameOver(this.gameOver);
+    this.view.play(name);
+    this.newProblem();
   }
 
   handleDeleteAllPlayers = () => {
@@ -78,17 +83,20 @@ class Controller {
      * 2. Player chose wrong answer */
     this.view.displayFailedAnswerCorrectly(this.quiz.problem.solution);
     const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
-    // this.
   }
 
   newProblem = () => {
     this.view.updateProgress(this.quiz.currentScore, this.quiz.pctCompleted);
-    this.quiz.nextQuestion();
-    this.view.displayProblem(this.quiz.problem);
+    if (this.quiz.nextQuestion()) {
+      this.view.displayProblem(this.quiz.problem);
+    }
   }
 
-  gameOver = (score, percentage) => {
-    /* Display final score and update player score */
+  gameOver = (name, score, percentage) => {
+    /* Display final score, save results and update player score */
+    this.players.updateResults(name, score, percentage);
+    this.players.savePlayers();
+    this.view.showGameOverPage(name, score, percentage);
   }
 
   handleAnswer = event => {
@@ -100,7 +108,8 @@ class Controller {
     } else {
       this.handleFail();
     }
-    this.players.updateCombinations();
+    /* Uncomment to save new combinations after each answer. */
+    // this.players.updateCombinations(this.quiz.name, this.quiz.combinations);
   }
 }
 

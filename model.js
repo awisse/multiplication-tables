@@ -13,16 +13,48 @@ import {SUCCEED, FAIL, PLAYERS} from './constants.js';
 
 import getRandomBetween from './random.js';
 
+class Player {
+  /* A class that contains all information about a player */
+  constructor(name, results=[], combinations=undefined) {
+    /* `name` is the minimal parameter.
+     * `results` and `combinations` can be known from stored results.
+     */
+    this.name = name;
+    const result = {date: Date.now(), score: 0, note: 0.0};
+    this.results = results ? results : [result];
+    this.combinations = combinations ? combinations : generateMultitables();
+  }
+
+  get highScore() {
+    /* Return highscore for the player */
+    let hscore = 0;
+    function useHigherScore(result) {
+      hscore = result.score > hscore ? result.score : hscore;
+    }
+    this.results.forEach(useHigherScore);
+    return hscore;
+  }
+
+  get serialize() {
+    /* Return serialized version of this */
+    return {
+      name: this.name,
+      results: this.results,
+      combinations: this.combinations};
+  }
+
+}
+
 class Players {
 
   constructor() {
-    this._loadPlayers();
+    this.#_loadPlayers();
   }
 
-  _loadPlayers() {
+  #_loadPlayers() {
     /* Retrieve names and high scores from localStorage */
-    this.players = getStorageItem(PLAYERS);
-
+    this.players = loadPlayers();
+   
     if ((this.players.length === 0) && TESTING) {
       this.players = testPlayers();
       this.players.sort(playerSort);
@@ -30,9 +62,9 @@ class Players {
   }
 
 
-  _savePlayers() {
+  #_savePlayers() {
     this.onPlayersChanged(this.players);
-    setStorageItem(PLAYERS, this.players);
+    savePlayers(this.players);
   }
 
   addPlayer(name) {
@@ -41,14 +73,8 @@ class Players {
       return FAIL;
     }
 
-    const new_player = {
-      name: name,
-      score: 0,
-      note: 0.0,
-      combinations: generateMultitables(),
-    }
-    this.players.push(new_player);
-    this._savePlayers();
+    this.players.push(new Player(name));
+    this.#_savePlayers();
 
     return SUCCEED;
   }
@@ -61,7 +87,7 @@ class Players {
       return false;
     }
     this.players.splice(player_index, 1);
-    this._savePlayers();
+    this.#_savePlayers();
     return true;
   }
 
@@ -94,7 +120,17 @@ class Players {
     this.onPlayersChanged = callback
   }
 
-  updateCombinations() {
+  updateResults(name, score, percentage) {
+    /* Append result to player with name `name`*/
+    const result = {date: Date.now(), score: score, note: percentage};
+    const player_ix = this._findPlayer(name);
+    this.players[player_ix].results.push(result);
+    this.players.sort(playerSort);
+  }
+
+  savePlayers() {
+    /* Maybe used one day to save combinations after each answer. */
+    savePlayers(this.players);
   }
 
 
@@ -106,6 +142,7 @@ class Quiz {
     /* Class for a quiz */
     this.sampleCount = this.counter = sample_count;
     this.combinations = combinations;
+    this.name = name;
 
     this.score = 0;
     this.correctAnswers = 0;
@@ -167,13 +204,14 @@ class Quiz {
 
   nextQuestion() {
 
-    this.counter -= 1;
+    this.cancelTimeout();
+
     if (this.counter === 0) {
       /* End of quiz */
-      this.handleGameOver(this.score, 0.0);
+      const pct = this.correctAnswers / this.sampleCount;
+      this.handleGameOver(this.name, this.score, pct);
+      return false;
     }
-
-    this.cancelTimeout();
 
     /* Select the pair of numbers from this.combinations */
     const selected = getRandomIndex(this.combinations);
@@ -188,6 +226,9 @@ class Quiz {
     this.timeout = setTimeout(this.timeoutAction, TIMEOUT);
 
     this.timer.reset();
+    this.counter -= 1;
+
+    return true;
   }
 
   addCombination() {
@@ -229,28 +270,23 @@ class Timer {
   }
 }
 
-
-
 function testPlayers() {
   /* A list of player data for testing */
-  let players = [ {name: 'Maman', 
-    score: 10754, note: 0.91,
-    combinations: generateMultitables()},
-    {name: 'Florence',
-      score: 756, note: 0.86,
-      combinations: generateMultitables()}, 
-    {name: 'Rémi',
-      score: 756, note: 0.86,
-      combinations: generateMultitables()}];
+  const players = [
+    new Player('Florence', [{date: Date.now(), score: 756, note: 0.4}]),
+    new Player('Rémi', [{date: Date.now(), score: 756, note: 0.45}]),
+    new Player('Maman', [{date: Date.now(), score: 10389, note: 0.65}])
+  ];
+
   return players;
 }
 
 function playerSort(a, b) {
-  /* Sort players by score. Highest first.
+  /* Sort players by highscore. Highest first.
    * Then by name. */
-  if (a.score > b.score) { return -1; }
-  if (a.score < b.score) { return 1; }
-  if (a.score === b.score) {
+  if (a.highScore > b.highScore) { return -1; }
+  if (a.highScore < b.highScore) { return 1; }
+  if (a.highScore === b.highScore) {
     if (a.name < b.name) { return -1; }
     if (a.name > b.name) { return 1; }
     return 0;
@@ -331,30 +367,33 @@ function getStorageItem(name) {
   return value ? JSON.parse(value) : [];
 }
 
+function storageToPlayer(storedPlayer) {
+  /* Convert serialized version of player to instance of Player. */
+  const player = new Player(storedPlayer.name, storedPlayer.results, 
+    storedPlayer.combinations);
+
+  return player;
+}
+
+function loadPlayers() {
+  /* Get player data from storage and convert into Player instances. */
+  const storedPlayers = getStorageItem(PLAYERS);
+  const players = storedPlayers.map(storageToPlayer);
+  return players;
+}
+
 function setStorageItem(name, item) {
   /* Save the object `item` to localStorage under the `name`. */
+  const jsonItem = JSON.stringify(item);
   if (localStorage) {
-    localStorage.setItem(name, JSON.stringify(item));
+    localStorage.setItem(name, jsonItem);
   }
 }
 
-function insertPair(pair) {
-  /* Add pair of numbers to the list in a random position */
-}
-
-function removePair(pair) {
-  /* Remove pair of numbers from the list, provided at least one
-   * pair is left after removal.
-   * */
-}
-
-function selectRandomPair() {
-  /* Select a random pair from the list */
-}
-
-function checkAnswer(pair, user_selection) {
-  /* Check whether the user provided the correct answer */
-  return (pair[0] * pair[1] === user_selection)
+function savePlayers(players) {
+  /* Convert classes to enumerable items and save to storage. */
+  const storagePlayers = players.map(player => player.serialize);
+  setStorageItem(PLAYERS, storagePlayers);
 }
 
 export { 

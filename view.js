@@ -116,22 +116,39 @@ class View {
     
     // Show footer, progressbar and score
     this.showFooter();
+  }
 
-    
+  showGameOverPage(name, score, percentage) {
+    /* Display the elements of the page "Game Over", displayed after the last
+     * quiz question has expired or been answered. */
+    // Empty the page.
+    this._emptyMainSection();
+    this.hideFooter();
+
+    this.pageHeader.textContent = `${name}, ${locale.gameOverHeader}`;
+
+    const scoreBlock = createElement('ul', 'scoreblock');
+    const scoreText = createElement('li');
+    const pctText = createElement('li');
+    const restartButton = createElement('button');
+    restartButton.textContent = locale.restartButton;
+
+    scoreText.textContent = `${locale.userScore} : ${score}`;
+    const pct = Math.round(percentage * 100.0);
+    pctText.textContent = `${locale.userPercentage} : ${pct}%`;
+
+    scoreBlock.append(scoreText, pctText);
+    this.main.append(scoreBlock, restartButton);
+
+    function restart(event) {
+      this.handleRestart(name);
+    }
+
+    restartButton.addEventListener('click', restart.bind(this));
   }
 
   _resetNameInput() {
     this.nameInput.value = ""
-  }
-
-  _loadStartPage() {
-    /* Display the start page */
-    // Set the header
-    this.pageHeader.textContent = locale.usersAndScores;
-
-    // Remove other content from main page.
-    this._emptyMainPage()
-
   }
 
   _emptyMainSection() {
@@ -169,6 +186,10 @@ class View {
 
   bindHandleAnswer(handler) {
     this.handleAnswer = handler;
+  }
+
+  bindRestart(handler) {
+    this.handleRestart = handler;
   }
 
   setTitle(title) {
@@ -209,7 +230,7 @@ class View {
         label.htmlFor = player.name + "_id";
 
         const score = createElement('span', 'userscore');
-        score.textContent = player.score;
+        score.textContent = player.highScore;
 
         const playButton = createElement('button', 'play');
         playButton.textContent = locale.playButtonText;

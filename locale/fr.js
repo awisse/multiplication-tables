@@ -14,5 +14,8 @@ export default {
   noticeNoPlayer         : "Aucun joueur enregistré! Ajoutez un joueur?",
   addUser                : "Ajouter",
   userScore              : "Points",
+  userPercentage         : "Note",
   progressLabel          : "Avancement",
+  gameOverHeader         : "ton résultat:",
+  restartButton          : "Recommencer",
 }

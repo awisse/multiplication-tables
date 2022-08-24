@@ -131,14 +131,6 @@ li.names {
   display: flex;
   align-items: center;
 }
-
-li span {
-  display: inline-block;
-  padding: .2rem;
-  width: 250px;
-  border-radius: 4px;
-  border: 2px solid transparent;
-}
 button.play {
   display: inline-block;
   box-shadow: none;
@@ -147,13 +139,10 @@ button.play {
 }
 .username {
   display: inline-block;
-  width: 10rem;
   color: #fff;
   text-align: left;
 }
 .userscore {
-  display: inline-block;
-  margin-left: 1rem;
   margin-right: 1rem;
   width: 100%;
   color: #fff;
