@@ -3,7 +3,7 @@
   font-family: 'Dosis';
   font-style: normal;
   font-weight: 600;
-  src: local(''), url('../assets/fonts/dosis-v17-latin-600.woff') format('woff');
+  src: url('../assets/fonts/dosis-v17-latin-600.woff') format('woff');
 }
 *, *:before, *:after {
   box-sizing: border-box;
@@ -23,22 +23,21 @@ body,
   display: none;
 }
 #gameboard {
-  align-items: center;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 0;
 }
 body {
   overflow: hidden;
   font-family: 'Dosis', sans-serif;
-  font-weight: 800;
+  color: white;
   font-size: 28px;
   line-height: 1.1;
   background: #f6940d;
   text-align: center;
   margin: 0;
-  padding: 0;
   background: linear-gradient(135deg, #f6940d 0%, #dc2ff7 100%);
 }
+/* Background picture (numbers) */
 body:before {
   content: '';
   position: absolute;
@@ -59,16 +58,10 @@ body:before {
 .page {
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 1;
 }
 .page-header {
-  flex: 0 0 auto;
   padding: 0.5em 1em;
-  line-height: 1em;
   background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  overflow: hidden;
 }
 .page-header h1 {
   font-size: 1em;
@@ -85,9 +78,7 @@ div.quiz-question {
   margin: 0 0.2em 0 0.2em;
 }
 .page-content h1 {
-  color: #fff;
   font-size: 1em;
-  font-weight: 400;
 }
 .page-content {
   flex: 1 1 auto;
@@ -96,30 +87,23 @@ div.quiz-question {
   padding: 1em 1em 0 1em;
 }
 .page-footer {
-  padding: 0;
   background-color: #dcdcdc;
-  color: #fff;
   background: rgba(0, 0, 0, 0.2);
 }
 /* Add Name Form */
-#name-form {
-  display: flex;
-  margin-bottom: 2rem;
-  /* width: 400px; */
-}
-input.username {
-  display: inline-block;
-  color: #000;
-  /* font-size: 1rem; */
+/* #name-form { */
+/*   display: flex; */
+/*   margin-bottom: 2rem; */
+/*   /1* width: 400px; *1/ */
+/* } */
+input[type="text"] {
   width: 250px;
   height: 2rem;
-  align-self: center;
-  color: #000;
+  color: black;
   margin-right: 1rem;
 }
 button.submit-user {
   display: inline-block;
-  box-shadow: none;
   width: 100px;
 }
 
@@ -132,24 +116,18 @@ li.names {
   align-items: center;
 }
 button.play {
-  display: inline-block;
-  box-shadow: none;
-  width: 100px;
+  width: auto;
   padding: 0.2em 1em 0.2em 1em;
 }
-.username {
-  display: inline-block;
-  color: #fff;
+.description {
+  width: 50%;
   text-align: left;
 }
 .userscore {
   margin-right: 1rem;
-  width: 100%;
-  color: #fff;
+  width: 70%;
   text-align: right;
 }
-
-
 @media screen and (max-width: 600px) {
   .page-footer {
     font-size: 5vw;
@@ -157,7 +135,7 @@ button.play {
 }
 .question {
   font-size: 2em;
-  color: #fff;
+  color: white;
   text-shadow: 0 0 0.5em rgba(0, 0, 0, 0.4);
   margin-top: -0.25em;
 }
@@ -165,19 +143,18 @@ button.play {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  margin: 0.5em auto 0 auto;
   font-size: 1.1em;
 }
 /* Checkbox choice result */
 .choice {
+  cursor: pointer;
   font-size: 1.2em;
   font-weight: 600;
   background: #f6940d;
-  color: #fff;
   width: 2.5em;
   height: 2.5em;
   border-radius: 1.25em;
-  border: 6px solid #fff;
+  border: 6px solid white;
   cursor: pointer;
   margin: 0.2em;
   user-select: none;
@@ -198,69 +175,37 @@ button.play {
   z-index: 1;
 }
 .progressbar {
-  display: inline-block;
   height: 0.8em;
-  border: 2px solid #fff;
+  border: 2px solid white;
   border-radius: 2px;
   width: 70%;
-  vertical-align: bottom;
-  margin-left: 1em;
-  margin-right: 1em;
-  background: #f0f0f0; /* Light grey */
 }
 /* Quiz page score */
 .scorebox {
   display: flex;
-  color: #fff;
   align-items: center;
   justify-content: space-between;
   margin: 0.5em 1em 0.5em 1em;
 }
-
 .quizscore {
   text-align: left;
-  margin-left: 1em;
   width: 70%;
-  margin-right: 1em;
-}
-
-
-input[type="text"] {
-  display: block;
-  width: 100%;
-  max-width: 340px;
-  border: 3px solid #fff;
-  border-radius: 0.2em;
-  margin: 0.5em auto;
-  padding: 0.2em;
-  background: #f0f0f0;
 }
 input[type="text"]:focus {
-  background: #fff;
+  background: white;
   outline: 0;
   box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.4);
 }
 /* "Commencer" button */
-input[type="button"],
 button {
   cursor: pointer;
-  display: block;
-  width: 90%;
-  max-width: 340px;
-  border: 3px solid #fff;
+  border: 3px solid white;
   border-radius: 0.5em;
   margin: 0.5em auto;
-  padding: 0.2em;
   background: #f6940d;
-  color: #fff;
-  text-align: center;
+  color: white;
   text-transform: uppercase;
   box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.6);
-}
-input[type="button"]:focus,
-button:focus {
-  border-color: #f6940d;
-  outline: 0;
 }
 div.input {
   width: 100%;
@@ -268,63 +213,4 @@ div.input {
   margin: 0 auto;
   overflow: hidden;
   padding-top: 0.5em;
-}
-/* Checkbox grid shape and alignment */
-div.input .checkbox {
-  float: left;
-  width: 15%;
-  margin-left: 8%;
-}
-/* Checkbox */
-.checkbox {
-  color: #fff;
-  width: 100%;
-  max-width: 340px;
-  margin: 0.5em 0;
-}
-/* Checkbox label */
-.checkbox div {
-  position: relative;
-  padding: 0.2em 0 0.2em 1.7em;
-  line-height: 1.1em;
-  text-align: left;
-}
-/* Checkbox */
-.checkbox div:before {
-  content: '';
-  position: absolute;
-  height: 1.5em;
-  width: 1.5em;
-  top: 0;
-  left: 0;
-  border: 3px solid #fff;
-  border-radius: 0.2em;
-  background: #f0f0f0;
-  transition: background 0.5s ease;
-}
-/* Checkmark */
-.checkbox div:after {
-  content: '';
-  position: absolute;
-  height: 0.5em;
-  width: 0.9em;
-  left: 0.33em;
-  top: 0.45em;
-  border-bottom: 6px solid #fff;
-  border-left: 6px solid #fff;
-  transform: rotate(-45deg) scale(0);
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transform-origin: center center;
-}
-.checkbox input {
-  display: none;
-}
-.checkbox input:checked + div:before {
-  background: #f6940d;
-}
-.checkbox input:checked + div:after {
-  transform: rotate(-45deg) scale(1);
-}
-.choice {
-  cursor: pointer;
 }

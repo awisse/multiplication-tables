@@ -42,7 +42,7 @@ class View {
     this.nameForm = createElement('form');
     this.nameForm.id = 'name-form';
     // The Edit Box
-    this.nameInput = createElement('input', 'username');
+    this.nameInput = createElement('input');
     this.nameInput.placeholder = locale.whatsYourName;
     this.nameInput.name = 'usernameInput';
     this.nameInput.maxlength = 20;
@@ -93,7 +93,7 @@ class View {
     // Progressbar with its label
     const progressBox = createElement('div', 'scorebox');
     // Label
-    const progressLabel = createElement('label', 'username');
+    const progressLabel = createElement('label');
     progressLabel.htmlFor = 'progress-bar';
     progressLabel.textContent = locale.progressLabel;
     // Bar 
@@ -106,7 +106,7 @@ class View {
 
     // Score with its label
     const scoreBox = createElement('div', 'scorebox');
-    const scoreLabel = createElement('span', 'username');
+    const scoreLabel = createElement('span');
     scoreLabel.textContent = locale.userScore;
     this.scoreValue = createElement('span', 'quizscore');
     this.scoreValue.textContent = "0";
@@ -127,18 +127,29 @@ class View {
 
     this.pageHeader.textContent = `${name}, ${locale.gameOverHeader}`;
 
-    const scoreBlock = createElement('ul', 'scoreblock');
-    const scoreText = createElement('li');
-    const pctText = createElement('li');
+    const resultsBlock = createElement('ul', 'names');
+    const scoreBlock = createElement('li', 'names');
+    const pctBlock = createElement('li', 'names');
+    resultsBlock.append(scoreBlock, pctBlock);
+
+    function addRow(label, value) {
+      const row = createElement('li', 'names');
+      const desc = createElement('label');
+      const number = createElement('span', 'userscore');
+      row.append(desc, number);
+      desc.textContent = label;
+      number.textContent = value;
+      resultsBlock.append(row);
+    }
+
+    addRow(locale.userScore, `${score}`)
+    const pct = Math.round(percentage * 100.0);
+    addRow(locale.userPercentage, `${pct}`)
+
     const restartButton = createElement('button');
     restartButton.textContent = locale.restartButton;
 
-    scoreText.textContent = `${locale.userScore} : ${score}`;
-    const pct = Math.round(percentage * 100.0);
-    pctText.textContent = `${locale.userPercentage} : ${pct}%`;
-
-    scoreBlock.append(scoreText, pctText);
-    this.main.append(scoreBlock, restartButton);
+    this.main.append(resultsBlock, restartButton);
 
     function restart(event) {
       this.handleRestart(name);
@@ -225,7 +236,7 @@ class View {
         const li = createElement('li', 'names');
         li.id = player.name;
 
-        const label = createElement('label', 'username');
+        const label = createElement('label');
         label.textContent = player.name;
         label.htmlFor = player.name + "_id";
 
