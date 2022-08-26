@@ -43,6 +43,7 @@ class View {
     this.nameForm.id = 'name-form';
     // The Edit Box
     this.nameInput = createElement('input');
+    this.nameInput.type = 'text';
     this.nameInput.placeholder = locale.whatsYourName;
     this.nameInput.name = 'usernameInput';
     this.nameInput.maxlength = 20;
@@ -106,7 +107,7 @@ class View {
 
     // Score with its label
     const scoreBox = createElement('div', 'scorebox');
-    const scoreLabel = createElement('span');
+    const scoreLabel = createElement('label');
     scoreLabel.textContent = locale.userScore;
     this.scoreValue = createElement('span', 'quizscore');
     this.scoreValue.textContent = "0";
@@ -128,9 +129,6 @@ class View {
     this.pageHeader.textContent = `${name}, ${locale.gameOverHeader}`;
 
     const resultsBlock = createElement('ul', 'names');
-    const scoreBlock = createElement('li', 'names');
-    const pctBlock = createElement('li', 'names');
-    resultsBlock.append(scoreBlock, pctBlock);
 
     function addRow(label, value) {
       const row = createElement('li', 'names');
