@@ -49,7 +49,7 @@ class View {
     this.nameInput.maxlength = 20;
     this.nameInput.minlength = 1;
     // The Button
-    this.submitNameButton = createElement('button', 'submit-user');
+    this.submitNameButton = createElement('button');
     this.submitNameButton.textContent = locale.addUser; 
     this.submitNameButton.name = 'usernameSubmit';
 
@@ -128,12 +128,12 @@ class View {
 
     this.pageHeader.textContent = `${name}, ${locale.gameOverHeader}`;
 
-    const resultsBlock = createElement('ul', 'names');
+    const resultsBlock = createElement('ul', 'results');
 
     function addRow(label, value) {
-      const row = createElement('li', 'names');
+      const row = createElement('li', 'result');
       const desc = createElement('label');
-      const number = createElement('span', 'userscore');
+      const number = createElement('span', 'end-result');
       row.append(desc, number);
       desc.textContent = label;
       number.textContent = value;
@@ -144,10 +144,18 @@ class View {
     const pct = Math.round(percentage * 100.0);
     addRow(locale.userPercentage, `${pct}`)
 
-    const restartButton = createElement('button');
+    const restartButton = createElement('button', 'restart');
     restartButton.textContent = locale.restartButton;
 
     this.main.append(resultsBlock, restartButton);
+
+    /* The canvas for the history graph (in points) */
+    this.historyGraph = createElement('canvas', 'graph');
+    this.historyGraph.id = 'history-graph';
+    this.historyGraph.width = "500";
+    this.historyGraph.height = "300";
+    this.historyGraph.textContent = "History Graph";
+    this.main.append(this.historyGraph);
 
     function restart(event) {
       this.handleRestart(name);

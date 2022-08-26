@@ -72,14 +72,16 @@ div.quiz-question {
   margin: 0 0.2em 0 0.2em;
 }
 .page-content {
+  display: flex;
+  flex-direction: column;
   position: relative;
 }
 .page-content h1 {
   font-size: 1em;
 }
 .page-footer {
-  background-color: #dcdcdc;
   background: rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 #name-form {
   display: flex;
@@ -87,7 +89,6 @@ div.quiz-question {
   flex-wrap: wrap;
 }
 input[type="text"] {
-  width: 250px;
   color: black;
   font-size: 0.7em;
   margin-right: 1rem;
@@ -98,21 +99,27 @@ input[type="text"]:focus {
   box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.4);
 }
 /* List of names */
+/* No markers for list */
+ul {
+  list-style: none;
+}
 .names {
   padding: 0;
 }
 li.names {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: center; /* Vertical */
+  justify-content: space-between;
   margin-bottom: 0.2em;
 }
 .userscore {
   margin-right: 1rem;
-  width: 70%;
+  width: 25%;
   text-align: right;
 }
 button {
-  width: auto;
+  width: fit-content;
   padding: 0.2em 1em 0.2em 1em;
   cursor: pointer;
   border: 3px solid white;
@@ -185,7 +192,35 @@ button {
   text-align: left;
   width: 70%;
 }
+/* Game over page */
+ul.results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+li.result {
+  display: flex;
+  margin-bottom: 0.2em;
+  justify-content: space-between;
+  width: 50%;
+}
 label {
   text-align: left;
+  width: 45%;
   white-space: pre;
+}
+.end-result {
+  width: 55%;
+  text-align: right;
+}
+button.restart {
+  margin: 0 auto;
+}
+#history-graph {
+  background: white;
+  margin: 1em;
+  opacity: 0.8;
+  border: 2px solid black;
+  box-shadow: 5px 5px 5px black;
 }
