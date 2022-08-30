@@ -2,7 +2,7 @@ export default {
   pageTitle              : "Tables de multiplications",
   metaDescription        : "Apprends les multiplications avec ce jeu",
   endMessage             : "Ton pourcentage de réussite est de %d",
-  whatsYourName          : "Nouveau joueur?",
+  whatsYourName          : "Entrez votre nom ici",
   whichMultiTable        : "Quel(les) table(s) voulez vous pratiquer?",
   letsStart              : "Commencer",
   noticeSelectAtLeastOne : "Choisir au moins une table",

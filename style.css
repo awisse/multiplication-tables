@@ -82,6 +82,7 @@ div.quiz-question {
 .page-footer {
   background: rgba(0, 0, 0, 0.2);
   z-index: 1;
+  margin-top: auto;
 }
 #name-form {
   display: flex;
@@ -223,4 +224,5 @@ button.restart {
   opacity: 0.8;
   border: 2px solid black;
   box-shadow: 5px 5px 5px black;
+  overflow: scroll;
 }

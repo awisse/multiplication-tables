@@ -83,7 +83,7 @@ class Players {
     /* Find the player */
     let player_index = this._findPlayer(name);
     /* Do not allow deletion of a player with a score */
-    if (this.players[player_index].score > 0) {
+    if (this.players[player_index].highScore > 0) {
       return false;
     }
     this.players.splice(player_index, 1);
@@ -177,7 +177,7 @@ class Quiz {
 
     const isCorrect = (answer === this.currentProblem.solution);
     if (isCorrect) {
-      this.correctAnswers += 1;
+      this.correctAnswers++;
       this.score += CORRECT_POINTS;
       this.score += Math.round(CORRECT_POINTS * speed);
       this.removeCombination();
@@ -226,7 +226,7 @@ class Quiz {
     this.timeout = setTimeout(this.timeoutAction, TIMEOUT);
 
     this.timer.reset();
-    this.counter -= 1;
+    this.counter--;
 
     return true;
   }
