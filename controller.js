@@ -96,7 +96,8 @@ class Controller {
     /* Display final score, save results and update player score */
     this.players.updateResults(name, score, percentage);
     this.players.savePlayers();
-    this.view.showGameOverPage(name, score, percentage);
+    this.view.showGameOverPage(name, score, percentage,
+                               this.players.getScoreArray(name));
   }
 
   handleAnswer = event => {

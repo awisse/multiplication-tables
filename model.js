@@ -122,10 +122,24 @@ class Players {
 
   updateResults(name, score, percentage) {
     /* Append result to player with name `name`*/
-    const result = {date: Date.now(), score: score, note: percentage};
-    const player_ix = this._findPlayer(name);
+    let result = {date: Date.now(), score: score, note: percentage};
+    let player_ix = this._findPlayer(name);
     this.players[player_ix].results.push(result);
     this.players.sort(playerSort);
+  }
+
+  getScoreArray(name) {
+    /* Get historical scores for player `name` as an array for plotting. */
+    let player_ix = this._findPlayer(name);
+    let playerResults = this.players[player_ix].results;
+    let resultCount = playerResults.length;
+    let results = Array(resultCount);
+
+    for (let i = 0; i < resultCount; i++) {
+      results[i] = [playerResults[i].date, playerResults[i].score];
+    }
+
+    return results;
   }
 
   savePlayers() {

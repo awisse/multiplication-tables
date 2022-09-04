@@ -18,4 +18,5 @@ export default {
   progressLabel          : "Avancement",
   gameOverHeader         : "ton résultat:",
   restartButton          : "Recommencer",
+  plotCaption            : "Historique pour ",
 }

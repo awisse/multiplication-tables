@@ -16,6 +16,8 @@ export const MAX_COMBINATIONS = 5; // Number of combinations to be asked
 export const TIMEOUT = 7000; // Milliseconds before next question
 export const ANSWER_DELAY = 1500; // Milliseconds to display answer layout
 export const CORRECT_POINTS = 10;
+export const PLOT_WIDTH = 500;
+export const PLOT_HEIGHT = 300;
 
 /* Local Storage */
 export const PLAYERS = 'players';

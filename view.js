@@ -5,7 +5,9 @@
 'use strict';
 import locale from './locale/default.js';
 import {PLAY, DELETE, TESTING} from './constants.js';
+import {PLOT_WIDTH, PLOT_HEIGHT} from './constants.js';
 import {sounds} from './resources.js';
+import {Plot2d} from './graph.js';
 
 class View {
 
@@ -14,9 +16,6 @@ class View {
     this.title = getElement('#mainTitle');
     this.main = getElement('#gameboard');
     this.footer = getElement('#footer');
-
-    /* Game title on top */
-    this.setTitle(locale.pageTitle);
 
     /* Description header of game pages */
     this.pageHeader = createElement('h1', 'page-title');
@@ -31,11 +30,15 @@ class View {
     // No footer on start page
     this.hideFooter();
 
+    /* Game title on top */
+    this.setTitle(locale.pageTitle);
+
     this._emptyMainSection();
 
     /* Create start page objects ------------------------------*/
     // Title of names page
     this.pageHeader.textContent = locale.usersAndScores;
+    this.main.append(this.pageHeader); 
 
     // Create input box for new name with submit button
     // The Form
@@ -64,13 +67,16 @@ class View {
     document.addEventListener('keyup', handleMainKeyUp.bind(this));
 
     // Put the page together
-    this.main.append(this.pageHeader, this.nameForm, this.nameList)
+    this.main.append(this.nameForm, this.nameList)
 
     /* End start page */
 
   }
 
   _setupQuizPage(name) {
+
+    /* Game title on top */
+    this.setTitle(locale.pageTitle);
 
     // Empty main page
     this._emptyMainSection();
@@ -81,6 +87,7 @@ class View {
     // The question 
     this.pageHeader.textContent = `${name}, ${locale.howMuchIs}`;
     this.pageHeader.append(this.quizProblemDisplay, "?");
+    this.main.append(this.pageHeader);
 
     // Define the section that shows the proposals
     this.proposalSection = createElement('div', 'choices');
@@ -119,14 +126,14 @@ class View {
     this.showFooter();
   }
 
-  showGameOverPage(name, score, percentage) {
+  showGameOverPage(name, score, percentage, results) {
     /* Display the elements of the page "Game Over", displayed after the last
      * quiz question has expired or been answered. */
     // Empty the page.
     this._emptyMainSection();
     this.hideFooter();
 
-    this.pageHeader.textContent = `${name}, ${locale.gameOverHeader}`;
+    this.setTitle(`${name}, ${locale.gameOverHeader}`);
 
     const resultsBlock = createElement('ul', 'results');
 
@@ -150,12 +157,11 @@ class View {
     this.main.append(resultsBlock, restartButton);
 
     /* The canvas for the history graph (in points) */
-    this.historyGraph = createElement('canvas', 'graph');
-    this.historyGraph.id = 'history-graph';
-    this.historyGraph.width = "500";
-    this.historyGraph.height = "300";
-    this.historyGraph.textContent = "History Graph";
-    this.main.append(this.historyGraph);
+    let plot = new Plot2d(results, "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
+    this.main.append(plot.canvas);
+    plot.title = locale.plotCaption + name;
+    plot.plot();
+
 
     function restart(event) {
       this.handleRestart(name);
@@ -169,11 +175,9 @@ class View {
   }
 
   _emptyMainSection() {
+    /* Remove all elements from the main section. */
     for (const element of Array.from(this.main.children)) {
-      // Always keep header.
-      if (element.id !== 'page-header') {
         this.main.removeChild(element)
-      } 
     } 
   }
 

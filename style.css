@@ -221,7 +221,6 @@ button.restart {
 #history-graph {
   background: white;
   margin: 1em;
-  opacity: 0.8;
   border: 2px solid black;
   box-shadow: 5px 5px 5px black;
   overflow: scroll;
