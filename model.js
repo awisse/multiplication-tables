@@ -6,7 +6,7 @@
  * 5. Save to localStorage
  * */
 'use strict';
-import {TESTING} from './constants.js'; 
+import {TESTING, MAX_DELETE_SCORE} from './constants.js'; 
 import {MAX_TABLE_INT, MAX_PROPOSALS, CORRECT_POINTS} from './constants.js';
 import {TIMEOUT}  from './constants.js';
 import {SUCCEED, FAIL, PLAYERS} from './constants.js';
@@ -43,6 +43,13 @@ class Player {
       combinations: this.combinations};
   }
 
+  get highScoreIX () {
+    /* Return the first index where the highScore has been reached */
+    let hscore = this.highScore;
+    let i = 0;
+    for (; this.results[i].score < hscore; i++) ;
+    return i;
+  }
 }
 
 class Players {
@@ -80,10 +87,9 @@ class Players {
   }
 
   deletePlayer(name) {
-    /* Find the player */
     let player_index = this._findPlayer(name);
     /* Do not allow deletion of a player with a score */
-    if (this.players[player_index].highScore > 0) {
+    if (this.players[player_index].highScore > MAX_DELETE_SCORE) {
       return false;
     }
     this.players.splice(player_index, 1);
@@ -94,7 +100,7 @@ class Players {
   deleteAllPlayers() {
     /* Delete all players. Irreversible. */
     while (this.players.pop());
-    this._savePlayers();
+    this.#_savePlayers();
   }
 
   _findPlayer(name) {
@@ -109,10 +115,13 @@ class Players {
     return -1;
   }
 
-  getCombinations(name) {
+  findPlayer(name) {
+    let ix = this._findPlayer(name);
+    return this.players[ix];
+  }
 
-    const player_ix = this._findPlayer(name);
-    const player = this.players[player_ix];
+  getCombinations(name) {
+    let player = this.findPlayer(name);
     return player.combinations;
   }
 
@@ -123,15 +132,13 @@ class Players {
   updateResults(name, score, percentage) {
     /* Append result to player with name `name`*/
     let result = {date: Date.now(), score: score, note: percentage};
-    let player_ix = this._findPlayer(name);
-    this.players[player_ix].results.push(result);
+    this.findPlayer(name).results.push(result);
     this.players.sort(playerSort);
   }
 
   getScoreArray(name) {
     /* Get historical scores for player `name` as an array for plotting. */
-    let player_ix = this._findPlayer(name);
-    let playerResults = this.players[player_ix].results;
+    let playerResults = this.findPlayer(name).results;
     let resultCount = playerResults.length;
     let results = Array(resultCount);
 

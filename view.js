@@ -4,6 +4,8 @@
  */
 'use strict';
 import locale from './locale/default.js';
+import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, RESTART_EV} 
+  from './constants.js';
 import {PLAY, DELETE, TESTING} from './constants.js';
 import {PLOT_WIDTH, PLOT_HEIGHT} from './constants.js';
 import {sounds} from './resources.js';
@@ -21,8 +23,13 @@ class View {
     this.pageHeader = createElement('h1', 'page-title');
     this.pageHeader.id = 'page-header';
 
+    this.handlers = {};
     this._setupNamesPage();
 
+  }
+
+  addHandler(name, handler) {
+    this.handlers[name] = handler;
   }
 
   _setupNamesPage() {
@@ -57,6 +64,16 @@ class View {
     this.submitNameButton.name = 'usernameSubmit';
 
     this.nameForm.append(this.nameInput, this.submitNameButton);
+
+    // Separate function definition for readability
+    let handleSubmit = (event) => {
+      event.preventDefault();
+      if (this.nameInput.value) {
+        this.handlers[ADD_PLAYER_EV](this.nameInput.value);
+        this._resetNameInput();
+      }
+    }
+    this.nameForm.addEventListener('submit', handleSubmit);
 
     // Create list for existing names
     this.nameList = createElement('ul', 'names');
@@ -157,17 +174,21 @@ class View {
     this.main.append(resultsBlock, restartButton);
 
     /* The canvas for the history graph (in points) */
-    let plot = new Plot2d(results, "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
-    this.main.append(plot.canvas);
-    plot.title = locale.plotCaption + name;
-    plot.plot();
+    this.plot = new Plot2d(results, "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
+    this.main.append(this.plot.canvas);
+    this.plot.title = locale.plotCaption + name;
+    this.plot.plot();
 
 
     function restart(event) {
-      this.handleRestart(name);
+      this.handler[RESTART_EV](name);
     }
 
     restartButton.addEventListener('click', restart.bind(this));
+  }
+
+  showStarAt(ix) {
+    this.plot.drawStarAt(ix);
   }
 
   _resetNameInput() {
@@ -179,38 +200,6 @@ class View {
     for (const element of Array.from(this.main.children)) {
         this.main.removeChild(element)
     } 
-  }
-
-  bindAddPlayer(handler) {
-    this.nameForm.addEventListener('submit', event => {
-      event.preventDefault();
-
-      if (this.nameInput.value) {
-        handler(this.nameInput.value);
-        this._resetNameInput();
-      }
-    }); 
-  }
-
-  bindPlayDeleteButtonPressed(handler) {
-    function playDeleteHandler(event) { 
-      event.preventDefault();
-      handler(event.target.parentNode.id, this.playOrDelete);
-    }
-
-    this.nameList.addEventListener('click', playDeleteHandler.bind(this));
-  }
-
-  bindDeleteAllPlayers(handler) {
-    this.deleteAllPlayers = handler;
-  }
-
-  bindHandleAnswer(handler) {
-    this.handleAnswer = handler;
-  }
-
-  bindRestart(handler) {
-    this.handleRestart = handler;
   }
 
   setTitle(title) {
@@ -226,8 +215,7 @@ class View {
   }
 
   refreshNamesList(names) {
-    /* Show the start page.
-     * Create a listbox with `names` to choose from or enter a new name.
+    /* reate a listbox with `names` to choose from or enter a new name.
      * Show highscores. */
 
     // Create the list of names to display
@@ -244,18 +232,23 @@ class View {
     else {
       names.forEach(player => {
         const li = createElement('li', 'names');
-        li.id = player.name;
 
         const label = createElement('label');
         label.textContent = player.name;
-        label.htmlFor = player.name + "_id";
 
         const score = createElement('span', 'userscore');
         score.textContent = player.highScore;
 
         const playButton = createElement('button', 'play');
         playButton.textContent = locale.playButtonText;
-        playButton.id = player.name + "_id";
+        playButton.type = 'button'
+        playButton.name = player.name;
+
+        let handler = (event) => { 
+          event.preventDefault();
+          this.handlers[PLAY_DELETE_EV](event.target.name, this.playOrDelete); 
+        }
+        playButton.addEventListener('click', handler)
 
         li.append(label, score, playButton);
         this.nameList.append(li);
@@ -279,7 +272,7 @@ class View {
       const choice = createElement("button", "choice");
       choice.textContent = `${proposal}`;
       choice.value = proposal;
-      choice.addEventListener('click', this.handleAnswer);
+      choice.addEventListener('click', this.handlers[ANSWER_EV]);
       this.proposalSection.append(choice);
     }
 
@@ -318,19 +311,16 @@ class View {
     /* TODO: More sophisticated dialogs in the future */
     window.alert(message);
   }
-
-
 }
 
 function getElement(selector) {
-  const element = document.querySelector(selector);
-
+  let element = document.querySelector(selector);
   return element;
 }
 
 function createElement(tag, className) {
   /* Crete a new HTML element on the page */
-  const element = document.createElement(tag)
+  let element = document.createElement(tag)
   if (className) element.classList.add(className)
 
   return element
@@ -349,11 +339,19 @@ function handleMainKeyDown(event) {
    * Click starts quiz for chosen player. */
 
   /* Delete all players, for testing purposes only */
-  if (TESTING && event.ctrlKey && (event.key == "d")) {
-    this.deleteAllPlayers();
+  if (TESTING && event.ctrlKey && (event.key === "d")) {
+    this.handlers[DELETE_ALL_EV]();
   }
   if (event.shiftKey && (event.code === "AltLeft")) {
     togglePlayDelete.bind(this)(DELETE);
+  }
+  if (event.metaKey && (event.key === "s")) {
+    // Save players to file
+    this.handlers[SAVE_EV]();
+  }
+  if (event.metaKey && (event.key === "l")) {
+    // Load players from file
+    this.handlers[LOAD_EV]();
   }
 }
 
@@ -378,48 +376,12 @@ function togglePlayDelete(state) {
       throw `Parameter "${state}" not in ("${PLAY}", "${DELETE}")`
     }
   }
-
+  // TODO: Only show `DELETE` option for players that can actually be deleted
   for (const player of this.nameList.children) {
     player.lastElementChild.textContent = playButtonText;
   }
 
   this.playOrDelete = state;
-}
-
-function displayTableSelection(container, preselected) {
-  /* Display an array of checkboxes with the preselected values already
-   * checked.
-   * Display the "Start" button 
-   */
-}
-
-function loadQuizPage(container) {
-  /* Load the quiz page */
-}
-
-function highlightCorrectAnswer(answer, usercorrect) {
-  /* Increase size of correct answer and dim others 
-   * `answer`: correct answer.
-   * `usercorrect`: If true, increase size of correct answer by 20%.
-   * */
-}
-
-function displayQuestion(container, numbers, proposals) {
-  /* Display the question and the multiple choice proposals
-   * `numbers`: Pair of numbers to multiply 
-   * `proposals`: Array of possible solutions 
-   * */
-}
-
-function updateProgressBar(value) {
-  /* Set the progress bar to the new value */
-}
-
-function loadResultPage(container, result) {
-  /* Load the result page and display the result. 
-   * Also display "Restart" button */
-
-
 }
 
 export { View }

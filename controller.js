@@ -5,6 +5,8 @@
  * */
 'use strict';
 import {FAIL, PLAY, DELETE, MAX_COMBINATIONS} from './constants.js';
+import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, RESTART_EV} 
+  from './constants.js';
 import {ANSWER_DELAY} from './constants.js';
 import {Quiz} from './model.js';
 import locale from './locale/default.js';
@@ -19,11 +21,11 @@ class Controller {
     this.players.bindPlayersChanged(this.onPlayersChanged);
 
     // Add bindings to objects in view
-    this.view.bindAddPlayer(this.handleAddPlayer);
-    this.view.bindPlayDeleteButtonPressed(this.handlePlayDeletePressed);
-    this.view.bindDeleteAllPlayers(this.handleDeleteAllPlayers);
-    this.view.bindHandleAnswer(this.handleAnswer);
-    this.view.bindRestart(this.play);
+    this.view.addHandler(ADD_PLAYER_EV, this.handleAddPlayer);
+    this.view.addHandler(PLAY_DELETE_EV, this.handlePlayDeletePressed);
+    this.view.addHandler(DELETE_ALL_EV, this.handleDeleteAllPlayers);
+    this.view.addHandler(ANSWER_EV, this.handleAnswer);
+    this.view.addHandler(RESTART_EV, this.play);
 
   }
 
@@ -39,8 +41,7 @@ class Controller {
     const result = this.players.addPlayer(name);
     if (result === FAIL) {
       this.view.showAlert(`Le nom "${name}" existe déjà!`);
-    }
-    else {
+    } else {
       this.players.addPlayer(name);
       this.start();
     }
@@ -49,16 +50,17 @@ class Controller {
   handlePlayDeletePressed = (name, state) => {
     /* Either delete the player if Ctrl is pressed or
      * start quiz for the player */
-    if (state === DELETE) {
-      if (this.players.deletePlayer(name)) {
-        this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
-      }
-    }
-    else {
-      if (state !== PLAY) {
-        throw `"state" must be "${PLAY}" or "${DELETE}"`;
-      }
-      this.play(name);
+    switch (state) {
+      case PLAY:
+        this.play(name);
+        break;
+      case DELETE: 
+        if (this.players.deletePlayer(name)) {
+          this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
+        }
+        break;
+      default: 
+        throw `"state" must be "${PLAY}" or "${DELETE}"`; 
     }
   }
 
@@ -98,6 +100,12 @@ class Controller {
     this.players.savePlayers();
     this.view.showGameOverPage(name, score, percentage,
                                this.players.getScoreArray(name));
+    /* Display a star at first high score if more than 1 score */
+    let player = this.players.findPlayer(name);
+    if (player.results.length > 1) {
+      let ix = player.highScoreIX;
+      this.view.showStarAt(ix);
+    }
   }
 
   handleAnswer = event => {
