@@ -277,11 +277,16 @@ class View {
     }
 
   }
+  
+  disableProposalButtons() {
+    for (const button of Array.from(this.proposalSection.children)) {
+      button.disabled = true;
+    } 
+  }
 
   displaySuccess(button) {
     /* Show display of correct answer: Increase size of button. */
     sounds.pass.play();
-    button.disabled = true;
     button.classList.add("is-clicked", "is-correct");
   }
 
@@ -289,7 +294,6 @@ class View {
     /* Highlight correct answer after wrong answer given by player */
     sounds.fail.play();
     for (const button of Array.from(this.proposalSection.children)) {
-      button.disabled = true;
       if (parseInt(button.value, 10) === correctAnswer) {
         button.classList.add("is-correct");
       } else {

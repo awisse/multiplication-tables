@@ -111,6 +111,7 @@ class Controller {
   handleAnswer = event => {
     /* The user clicked on one of the multiple choice answers */
     const clicked = event.target;
+    this.view.disableProposalButtons();
     if (this.quiz.checkAnswer(parseInt(clicked.value, 10))) {
       this.view.displaySuccess(clicked);
       const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
