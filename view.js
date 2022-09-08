@@ -281,6 +281,7 @@ class View {
   displaySuccess(button) {
     /* Show display of correct answer: Increase size of button. */
     sounds.pass.play();
+    button.disabled = true;
     button.classList.add("is-clicked", "is-correct");
   }
 
@@ -288,6 +289,7 @@ class View {
     /* Highlight correct answer after wrong answer given by player */
     sounds.fail.play();
     for (const button of Array.from(this.proposalSection.children)) {
+      button.disabled = true;
       if (parseInt(button.value, 10) === correctAnswer) {
         button.classList.add("is-correct");
       } else {
@@ -347,6 +349,7 @@ function handleMainKeyDown(event) {
   }
   if (event.metaKey && (event.key === "s")) {
     // Save players to file
+    event.stopPropagation();
     this.handlers[SAVE_EV]();
   }
   if (event.metaKey && (event.key === "l")) {
@@ -365,16 +368,15 @@ function togglePlayDelete(state) {
     return; 
   }
 
-  if (state === PLAY) {
-    playButtonText = locale.playButtonText;
-  }
-  else {
-    if (state === DELETE) {
+  switch (state) {
+    case PLAY:
+      playButtonText = locale.playButtonText;
+      break;
+    case DELETE: 
       playButtonText = locale.deleteButtonText;
-    } 
-    else {
+      break;
+    default:
       throw `Parameter "${state}" not in ("${PLAY}", "${DELETE}")`
-    }
   }
   // TODO: Only show `DELETE` option for players that can actually be deleted
   for (const player of this.nameList.children) {

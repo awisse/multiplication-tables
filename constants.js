@@ -19,7 +19,7 @@ export const ANSWER_EV = 'answer';
 export const RESTART_EV = 'restart';
 
 /* Parameters */
-export const MAX_COMBINATIONS = 5; // Number of combinations to be asked
+export const MAX_COMBINATIONS = 100; // Number of combinations to be asked
 export const TIMEOUT = 10000; // Milliseconds before next question
 export const ANSWER_DELAY = 1500; // Milliseconds to display answer layout
 export const CORRECT_POINTS = 10;
