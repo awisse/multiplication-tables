@@ -4,9 +4,11 @@
  * 3. Queries *model* for data.
  * */
 'use strict';
+import {TESTING} from './constants.js';
 import {FAIL, PLAY, DELETE, MAX_COMBINATIONS} from './constants.js';
-import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, RESTART_EV} 
-  from './constants.js';
+import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, 
+  RESTART_EV, SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV, 
+  PLAYERS_CHANGED_EV} from './constants.js';
 import {ANSWER_DELAY} from './constants.js';
 import {Quiz} from './model.js';
 import locale from './locale/default.js';
@@ -18,23 +20,30 @@ class Controller {
     this.view = view;
 
     // Add bindings to players
-    this.players.bindPlayersChanged(this.onPlayersChanged);
+    this.players.addHandler(PLAYERS_CHANGED_EV, this.onPlayersChanged);
 
-    // Add bindings to objects in view
+    // Add bindings to events in view
     this.view.addHandler(ADD_PLAYER_EV, this.handleAddPlayer);
-    this.view.addHandler(PLAY_DELETE_EV, this.handlePlayDeletePressed);
-    this.view.addHandler(DELETE_ALL_EV, this.handleDeleteAllPlayers);
     this.view.addHandler(ANSWER_EV, this.handleAnswer);
+    this.view.addHandler(KEY_DOWN_EV, this.handleKeyDown.bind(this));
+    this.view.addHandler(KEY_UP_EV, this.handleKeyUp.bind(this));
+    this.view.addHandler(LOAD_EV, this.loadPlayers);
+    this.view.addHandler(PLAY_DELETE_EV, this.handlePlayDeletePressed);
     this.view.addHandler(RESTART_EV, this.play);
+    this.view.addHandler(SAVE_EV, this.savePlayers);
+
+    this.view.setupListeners();
 
   }
 
   start() {
+    this.view.setupNamesPage();
     this.view.refreshNamesList(this.players.players);
   }
 
-  onPlayersChanged = players => {
-    this.view.refreshNamesList(players);
+  onPlayersChanged = () => {
+    this.players.savePlayers();
+    this.view.refreshNamesList(this.players.players);
   }
 
   handleAddPlayer = name => {
@@ -74,15 +83,17 @@ class Controller {
     this.newProblem();
   }
 
-  handleDeleteAllPlayers = () => {
+  deleteAllPlayers = () => {
     this.view.showAlert("All players will be deleted");
     this.players.deleteAllPlayers();
+    this.onPlayersChanged();
   }
 
   handleFail = () => {
     /* Two cases: 
      * 1. Player took too long.
      * 2. Player chose wrong answer */
+    this.view.disableProposalButtons(); // Prevent clicking after timeout
     this.view.displayFailedAnswerCorrectly(this.quiz.problem.solution);
     const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
   }
@@ -111,7 +122,7 @@ class Controller {
   handleAnswer = event => {
     /* The user clicked on one of the multiple choice answers */
     const clicked = event.target;
-    this.view.disableProposalButtons();
+    this.view.disableProposalButtons(); // Prevent clicking multiple times
     if (this.quiz.checkAnswer(parseInt(clicked.value, 10))) {
       this.view.displaySuccess(clicked);
       const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
@@ -121,6 +132,42 @@ class Controller {
     /* Uncomment to save new combinations after each answer. */
     // this.players.updateCombinations(this.quiz.name, this.quiz.combinations);
   }
+
+  savePlayers = anchor => {
+    /* Save all player data through anchor to a file */
+    this.players.savePlayersAs(anchor);
+  }
+
+  loadPlayers(files) {
+    /* Load player data from a file replacing current player data */
+    this.view.showAlert(`${files.length} files selected`);
+  }
+
+  handleKeyUp(event) {
+    /* "Play" button shows "Play". */
+    if (event.code === "AltLeft") {
+      this.view.togglePlayDelete(PLAY);
+    }
+  }
+
+  handleKeyDown(event) {
+    /* "Play" button shows "Delete".
+     * Click starts quiz for chosen player. */
+
+    /* Delete all players, for testing purposes only */
+    if (TESTING && event.ctrlKey && (event.key === "d")) {
+      deleteAllPlayers();
+      return;
+    }
+    if (event.altKey && (event.key === "Shift")) {
+      this.view.togglePlayDelete(DELETE);
+      return;
+    }
+    if (event.ctrlKey && event.metaKey && (event.key === "s")) {
+      this.view.toggleHideShowAnchorLoad();
+    }
+  }
 }
+
 
 export { Controller }

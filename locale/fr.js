@@ -19,4 +19,6 @@ export default {
   gameOverHeader         : "ton résultat:",
   restartButton          : "Recommencer",
   plotCaption            : "Historique pour ",
+  savePlayers            : "Sauvegarder",
+  loadPlayers            : "Importer",
 }

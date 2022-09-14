@@ -82,22 +82,20 @@ class Plot2d {
     let values = this.values.map(p => p[1]);
     let max = Math.max(...values);
     let min = Math.min(...values);
-
-    // Special case: `min === max` =>`tickSize === 0`
-    let tickSize = Math.max(getTickSize(min, max), 1);
-    let numTicks = Math.max(Math.ceil((max - min) / tickSize) + 1, 2);
-    let tickPx = Math.floor(this.yPxAvailable / numTicks);
+  
+    let tickSize = getTickSize(min, max);
 
     // Start with an integer multiple of tickSize
     let minYTick = Math.floor(min / tickSize) * tickSize;
-    // If `min > 0`, start graph above x-axis
-    if (min > 0) {
-      minYTick = Math.max(minYTick - tickSize, 0);
-    }
+    let maxYTick = Math.ceil(max / tickSize) * tickSize;
+
+    let numTicks = Math.max((maxYTick - minYTick) / tickSize + 1, 2);
+    let tickPx = Math.floor(this.yPxAvailable / numTicks);
+
     this.yticks = [new Tick(minYTick, this.yMinPos)];
 
     /* Guarantee at least two ticks (provided min < max). */
-    while (this.yticks.at(-1).value < max) {
+    for (let i = 1; i < numTicks; i++) {
       this.yticks.push(this.yticks.at(-1).step(tickSize, -tickPx));
     }
 

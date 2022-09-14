@@ -9,6 +9,7 @@
 import {TESTING, MAX_DELETE_SCORE} from './constants.js'; 
 import {MAX_TABLE_INT, MAX_PROPOSALS, CORRECT_POINTS} from './constants.js';
 import {TIMEOUT}  from './constants.js';
+import {PLAYERS_CHANGED_EV} from './constants.js';
 import {SUCCEED, FAIL, PLAYERS} from './constants.js';
 
 import getRandomBetween from './random.js';
@@ -56,6 +57,18 @@ class Players {
 
   constructor() {
     this.#_loadPlayers();
+    this.handlers = [];
+  }
+
+  get serialize() {
+    /* Return a JSON version of `this.players` */
+    const storagePlayers = this.players.map(player => player.serialize);
+    const jsonPlayers = JSON.stringify(storagePlayers, null, 2);
+    return jsonPlayers
+  }
+
+  addHandler(ev, callback) {
+    this.handlers[ev] = callback;
   }
 
   #_loadPlayers() {
@@ -68,12 +81,6 @@ class Players {
     }
   }
 
-
-  #_savePlayers() {
-    this.onPlayersChanged(this.players);
-    savePlayers(this.players);
-  }
-
   addPlayer(name) {
     /* First check whether player name exists */
     if (this._findPlayer(name) >= 0) {
@@ -81,26 +88,27 @@ class Players {
     }
 
     this.players.push(new Player(name));
-    this.#_savePlayers();
+    this.handlers[PLAYERS_CHANGED_EV]();
 
     return SUCCEED;
   }
 
   deletePlayer(name) {
     let player_index = this._findPlayer(name);
-    /* Do not allow deletion of a player with a score */
+    if (player_index < 0) {return false;} // Player doesn't exist
+    /* Do not allow deletion of a player with a score > MAX_DELETE_SCORE */
     if (this.players[player_index].highScore > MAX_DELETE_SCORE) {
       return false;
     }
     this.players.splice(player_index, 1);
-    this.#_savePlayers();
+    this.handlers[PLAYERS_CHANGED_EV]();
     return true;
   }
 
   deleteAllPlayers() {
     /* Delete all players. Irreversible. */
     while (this.players.pop());
-    this.#_savePlayers();
+    this.handlers[PLAYERS_CHANGED_EV]();
   }
 
   _findPlayer(name) {
@@ -125,10 +133,6 @@ class Players {
     return player.combinations;
   }
 
-  bindPlayersChanged(callback) {
-    this.onPlayersChanged = callback
-  }
-
   updateResults(name, score, percentage) {
     /* Append result to player with name `name`*/
     let result = {date: Date.now(), score: score, note: percentage};
@@ -149,9 +153,17 @@ class Players {
     return results;
   }
 
+  savePlayersAs(anchor) {
+    let playersBLOB = new Blob([this.serialize], {type: 'application/json'});
+    if (anchor.href) {
+      URL.revokeObjectURL(anchor.href);
+    }
+    anchor.href = URL.createObjectURL(playersBLOB);
+  }
+
   savePlayers() {
     /* Maybe used one day to save combinations after each answer. */
-    savePlayers(this.players);
+    setStorageItem(PLAYERS, this.serialize)
   }
 
 
@@ -403,18 +415,12 @@ function loadPlayers() {
   return players;
 }
 
-function setStorageItem(name, item) {
-  /* Save the object `item` to localStorage under the `name`. */
-  const jsonItem = JSON.stringify(item);
+function setStorageItem(name, json) {
+  /* Save the object `json` already in JSON format, 
+   * to localStorage under the `name`. */
   if (localStorage) {
-    localStorage.setItem(name, jsonItem);
+    localStorage.setItem(name, json);
   }
-}
-
-function savePlayers(players) {
-  /* Convert classes to enumerable items and save to storage. */
-  const storagePlayers = players.map(player => player.serialize);
-  setStorageItem(PLAYERS, storagePlayers);
 }
 
 export { 

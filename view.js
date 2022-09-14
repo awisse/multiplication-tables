@@ -4,17 +4,24 @@
  */
 'use strict';
 import locale from './locale/default.js';
-import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, RESTART_EV} 
-  from './constants.js';
+import {ADD_PLAYER_EV, PLAY_DELETE_EV, ANSWER_EV, RESTART_EV,
+  SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV} from './constants.js';
 import {PLAY, DELETE, TESTING} from './constants.js';
+import {NAMES_PAGE, QUIZ_PAGE, RESULT_PAGE} from './constants.js';
 import {PLOT_WIDTH, PLOT_HEIGHT} from './constants.js';
+import {PLAYERS_JSON} from './constants.js';
 import {sounds} from './resources.js';
 import {Plot2d} from './graph.js';
+
+const HIDDEN = 0;
+const SAVE = 1;
+const LOAD = 2;
 
 class View {
 
   constructor(title) {
 
+    this.page = getElement('div.page');
     this.title = getElement('#mainTitle');
     this.main = getElement('#gameboard');
     this.footer = getElement('#footer');
@@ -24,7 +31,12 @@ class View {
     this.pageHeader.id = 'page-header';
 
     this.handlers = {};
-    this._setupNamesPage();
+
+    this._addSaveButton();
+    this._addLoadButton();
+
+    this.saveLoadState = HIDDEN;
+    this.gameState = undefined;
 
   }
 
@@ -32,14 +44,99 @@ class View {
     this.handlers[name] = handler;
   }
 
-  _setupNamesPage() {
+  setupListeners() {
+    // Toggle between "Play" and "Delete" for the button
+    document.addEventListener('keydown', this.handlers[KEY_DOWN_EV]);
+    document.addEventListener('keyup', this.handlers[KEY_UP_EV]);
+    
+    function saveClicked(event) {
+      this.handlers[SAVE_EV](this.saveButton);
+    }
+
+    this.saveButton.addEventListener('mousedown', pressed);
+    this.saveButton.addEventListener('mouseup', notPressed);
+    this.saveButton.addEventListener('mouseleave', notPressed);
+    this.saveButton.addEventListener('click', saveClicked.bind(this));
+
+    function loadEvent(event) {
+      this.handlers[LOAD_EV](this.loadInput.files)
+    }
+
+    this.loadButton.addEventListener('mousedown', pressed);
+    this.loadButton.addEventListener('mouseup', notPressed);
+    this.loadButton.addEventListener('mouseleave', notPressed);
+    this.loadInput.addEventListener('changed', loadEvent.bind(this));
+
+  }
+
+  _addSaveButton () {
+
+    // Add Save Players button
+    this.saveButton = createElement('a', 'save-load');
+    this.saveButton.download = PLAYERS_JSON;
+    this.saveButton.innerText = locale.savePlayers;
+    this.saveButton.id = 'save-button';
+    hide(this.saveButton);
+
+    this.page.append(this.saveButton);
+
+  }
+
+  _addLoadButton() {
+
+    // Add Load Button: An input element
+    // The Container
+    this.loadButton = document.createElement('div', 'save-load');
+    this.loadButton.id = 'load-button';
+    // The Label
+    let loadLabel = createElement('label', 'save-load');
+    loadLabel.innerText = locale.loadPlayers
+    loadLabel.id = 'load-label';
+    loadLabel.htmlFor = 'load-input';
+    // The Input
+    this.loadInput = document.createElement('input')
+    this.loadInput.type = 'file';
+    this.loadInput.id = 'load-input';
+    this.loadInput.name = 'load-input';
+    this.loadInput.accept = 'text/.json';
+    hide(this.loadButton);
+
+    this.loadButton.append(loadLabel, this.loadInput);
+
+    this.page.append(this.loadButton);
+  }
+
+  toggleHideShowAnchorLoad() {
+
+    /* Do nothing on pages other than the NAMES_PAGE */
+    if (this.gameState !== NAMES_PAGE) return;
+
+    this.saveLoadState = (this.saveLoadState + 1) % 3;
+    unhide(this.saveButton);
+    unhide(this.loadButton);
+    switch (this.saveLoadState) {
+      case HIDDEN:
+        hide(this.saveButton);
+      case SAVE:
+        hide(this.loadButton);
+        break;
+      case LOAD:
+        hide(this.saveButton);
+        break;
+      default:
+        throw 'Must be "HIDDEN", "SAVE" or "LOAD"';
+    }
+  }
+
+  setupNamesPage() {
     //
     // No footer on start page
-    this.hideFooter();
+    hide(this.footer);
 
     /* Game title on top */
     this.setTitle(locale.pageTitle);
 
+    /* Clean up page */
     this._emptyMainSection();
 
     /* Create start page objects ------------------------------*/
@@ -79,14 +176,10 @@ class View {
     this.nameList = createElement('ul', 'names');
     this.nameList.id = 'name-list';
 
-    // Toggle between "Play" and "Delete" for the button
-    document.addEventListener('keydown', handleMainKeyDown.bind(this));
-    document.addEventListener('keyup', handleMainKeyUp.bind(this));
-
     // Put the page together
     this.main.append(this.nameForm, this.nameList)
 
-    /* End start page */
+    this.gameState = NAMES_PAGE;
 
   }
 
@@ -97,6 +190,8 @@ class View {
 
     // Empty main page
     this._emptyMainSection();
+    hide(this.saveButton);
+    hide(this.loadButton);
 
     // Define Section that displays the question
     this.quizProblemDisplay = createElement('div', 'quiz-question');
@@ -140,7 +235,9 @@ class View {
     this.footer.append(progressBox, scoreBox);
     
     // Show footer, progressbar and score
-    this.showFooter();
+    unhide(this.footer);
+
+    this.gameState = QUIZ_PAGE;
   }
 
   showGameOverPage(name, score, percentage, results) {
@@ -148,7 +245,7 @@ class View {
      * quiz question has expired or been answered. */
     // Empty the page.
     this._emptyMainSection();
-    this.hideFooter();
+    hide(this.footer);
 
     this.setTitle(`${name}, ${locale.gameOverHeader}`);
 
@@ -181,10 +278,12 @@ class View {
 
 
     function restart(event) {
-      this.handler[RESTART_EV](name);
+      this.handlers[RESTART_EV](name);
     }
 
     restartButton.addEventListener('click', restart.bind(this));
+
+    this.gameState = RESULT_PAGE;
   }
 
   showStarAt(ix) {
@@ -206,16 +305,9 @@ class View {
     this.title.textContent = title;
   }
 
-  hideFooter() {
-    this.footer.classList.add('hidden');
-  }
-
-  showFooter() {
-    this.footer.classList.remove('hidden');
-  }
-
   refreshNamesList(names) {
-    /* reate a listbox with `names` to choose from or enter a new name.
+    /* `names` is an instance of `Players.players` in the module 'model.js'.
+     * Create a list of `names` to choose from or enter a new name.
      * Show highscores. */
 
     // Create the list of names to display
@@ -313,9 +405,37 @@ class View {
     this._setupQuizPage(name);
   }
 
+  togglePlayDelete(state) {
+    /* Depending on `state`, change text of "Play" buttons in the 
+     * nameList. */
+    let playButtonText; 
+
+    /* Check whether nameList is displayed */
+    if (!document.getElementById('name-list')) {
+      return; 
+    }
+
+    switch (state) {
+      case PLAY:
+        playButtonText = locale.playButtonText;
+        break;
+      case DELETE: 
+        playButtonText = locale.deleteButtonText;
+        break;
+      default:
+        throw `Parameter "${state}" not in ("${PLAY}", "${DELETE}")`
+    }
+    // TODO: Only show `DELETE` option for players that can actually be deleted
+    for (const player of this.nameList.children) {
+      player.lastElementChild.textContent = playButtonText;
+    }
+
+    this.playOrDelete = state;
+  }
+
   showAlert(message) {
     /* TODO: More sophisticated dialogs in the future */
-    window.alert(message);
+    showDialog(message);
   }
 }
 
@@ -326,68 +446,40 @@ function getElement(selector) {
 
 function createElement(tag, className) {
   /* Crete a new HTML element on the page */
-  let element = document.createElement(tag)
-  if (className) element.classList.add(className)
+  let element = document.createElement(tag);
+  if (className) element.classList.add(className);
 
-  return element
+  return element;
 }
 
-function handleMainKeyUp(event) {
-  /* "Play" button shows "Play".
-   * Click deletes player. */
-  if (event.code === "AltLeft") {
-    togglePlayDelete.bind(this)(PLAY);
-  }
+
+function showDialog(message) {
+  let dialog = createElement('dialog');
+  dialog.innerText = message;
+  let form = createElement('form', 'dialog-form');
+  form.method = "dialog";
+  let button = createElement('button', 'dialog-button');
+  button.innerText = "OK";
+  form.append(button);
+  dialog.append(form);
+  document.getElementById("gameboard").append(dialog);
+  dialog.showModal();
 }
 
-function handleMainKeyDown(event) {
-  /* "Play" button shows "Delete".
-   * Click starts quiz for chosen player. */
-
-  /* Delete all players, for testing purposes only */
-  if (TESTING && event.ctrlKey && (event.key === "d")) {
-    this.handlers[DELETE_ALL_EV]();
-  }
-  if (event.shiftKey && (event.code === "AltLeft")) {
-    togglePlayDelete.bind(this)(DELETE);
-  }
-  if (event.metaKey && (event.key === "s")) {
-    // Save players to file
-    event.stopPropagation();
-    this.handlers[SAVE_EV]();
-  }
-  if (event.metaKey && (event.key === "l")) {
-    // Load players from file
-    this.handlers[LOAD_EV]();
-  }
+function hide(element) {
+  element.classList.add('hidden');
 }
 
-function togglePlayDelete(state) {
-  /* Depending on `state`, change text of "Play" buttons in the 
-   * nameList. */
-  let playButtonText; 
+function unhide(element) {
+  element.classList.remove('hidden')
+}
 
-  /* Check whether nameList is displayed */
-  if (!document.getElementById('name-list')) {
-    return; 
-  }
+function pressed(event) {
+  event.currentTarget.classList.add('pressed');
+}
 
-  switch (state) {
-    case PLAY:
-      playButtonText = locale.playButtonText;
-      break;
-    case DELETE: 
-      playButtonText = locale.deleteButtonText;
-      break;
-    default:
-      throw `Parameter "${state}" not in ("${PLAY}", "${DELETE}")`
-  }
-  // TODO: Only show `DELETE` option for players that can actually be deleted
-  for (const player of this.nameList.children) {
-    player.lastElementChild.textContent = playButtonText;
-  }
-
-  this.playOrDelete = state;
+function notPressed(event) {
+  event.currentTarget.classList.remove('pressed');
 }
 
 export { View }
