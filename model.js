@@ -9,8 +9,9 @@
 import {TESTING, MAX_DELETE_SCORE} from './constants.js'; 
 import {MAX_TABLE_INT, MAX_PROPOSALS, CORRECT_POINTS} from './constants.js';
 import {TIMEOUT}  from './constants.js';
-import {PLAYERS_CHANGED_EV} from './constants.js';
-import {SUCCEED, FAIL, PLAYERS} from './constants.js';
+import {PLAYERS_CHANGED_EV, LOAD_ERROR_EV} from './constants.js';
+import {SUCCEED, FAIL, PLAYERS, BACKUP} from './constants.js';
+import {parsePlayerJSON} from './parser.js';
 
 import getRandomBetween from './random.js';
 
@@ -55,30 +56,69 @@ class Player {
 
 class Players {
 
+  #players;
+
   constructor() {
-    this.#_loadPlayers();
+    this.#_loadPlayers(PLAYERS);
     this.handlers = [];
   }
 
+  get length() {
+    return this.#players.length;
+  }
+
   get serialize() {
-    /* Return a JSON version of `this.players` */
-    const storagePlayers = this.players.map(player => player.serialize);
+    /* Return a JSON version of `this.#players` */
+    const storagePlayers = this.#players.map(player => player.serialize);
     const jsonPlayers = JSON.stringify(storagePlayers, null, 2);
     return jsonPlayers
+  }
+
+  get players() {
+    /* Return a copy of the players */
+    let players = Object.create(this.#players);
+    return players;
+  }
+
+  set newPlayers(players) {
+    /* Make a backup of existing players in localStorage and set new players */
+    let backup = this.serialize;
+    setStorageItem(BACKUP, backup);
+    this.#players = players;
+    this.handlers[PLAYERS_CHANGED_EV]();
   }
 
   addHandler(ev, callback) {
     this.handlers[ev] = callback;
   }
 
-  #_loadPlayers() {
+  #_loadPlayers(key) {
     /* Retrieve names and high scores from localStorage */
-    this.players = loadPlayers();
-   
-    if ((this.players.length === 0) && TESTING) {
-      this.players = testPlayers();
-      this.players.sort(playerSort);
+    try {
+      this.#players = loadPlayers(key);
+    } catch (error) {
+      /* This shouldn't happen as localStorage players is JSON 
+       * produced by `JSON.stringify()` */
+      let msg = `model.#_loadPlayers: ${error}`;
+      alert(msg);
+      this.#players = [];
     }
+   
+    if ((this.#players.length === 0) && TESTING) {
+      this.#players = testPlayers();
+      this.#players.sort(playerSort);
+    }
+  }
+
+  importPlayers(file) {
+    let reader = new FileReader();
+    function loadData(e) {
+      let storedPlayers = reader.result;
+      this.newPlayers = parsePlayerJSON(storedPlayers, storageToPlayer);
+    }
+      
+    reader.addEventListener("load", loadData.bind(this));
+    reader.readAsText(file);
   }
 
   addPlayer(name) {
@@ -87,7 +127,7 @@ class Players {
       return FAIL;
     }
 
-    this.players.push(new Player(name));
+    this.#players.push(new Player(name));
     this.handlers[PLAYERS_CHANGED_EV]();
 
     return SUCCEED;
@@ -97,25 +137,25 @@ class Players {
     let player_index = this._findPlayer(name);
     if (player_index < 0) {return false;} // Player doesn't exist
     /* Do not allow deletion of a player with a score > MAX_DELETE_SCORE */
-    if (this.players[player_index].highScore > MAX_DELETE_SCORE) {
+    if (this.#players[player_index].highScore > MAX_DELETE_SCORE) {
       return false;
     }
-    this.players.splice(player_index, 1);
+    this.#players.splice(player_index, 1);
     this.handlers[PLAYERS_CHANGED_EV]();
     return true;
   }
 
   deleteAllPlayers() {
     /* Delete all players. Irreversible. */
-    while (this.players.pop());
+    while (this.#players.pop());
     this.handlers[PLAYERS_CHANGED_EV]();
   }
 
   _findPlayer(name) {
 
-    var player;
-    for (let i=0; i < this.players.length; i++) {
-      player = this.players[i];
+    let player;
+    for (let i=0; i < this.#players.length; i++) {
+      player = this.#players[i];
       if (player.name === name) {
         return i;
       }
@@ -125,7 +165,7 @@ class Players {
 
   findPlayer(name) {
     let ix = this._findPlayer(name);
-    return this.players[ix];
+    return this.#players[ix];
   }
 
   getCombinations(name) {
@@ -137,7 +177,7 @@ class Players {
     /* Append result to player with name `name`*/
     let result = {date: Date.now(), score: score, note: percentage};
     this.findPlayer(name).results.push(result);
-    this.players.sort(playerSort);
+    this.#players.sort(playerSort);
   }
 
   getScoreArray(name) {
@@ -394,10 +434,9 @@ function buildProposals(numbers) {
 function getStorageItem(name) {
   /* Get the item named `name` from localStorage */
 
-  if (!localStorage)
-    return [];
+  if (!localStorage) return "";
   let value = localStorage.getItem(name);
-  return value ? JSON.parse(value) : [];
+  return value;
 }
 
 function storageToPlayer(storedPlayer) {
@@ -408,10 +447,10 @@ function storageToPlayer(storedPlayer) {
   return player;
 }
 
-function loadPlayers() {
+function loadPlayers(name) {
   /* Get player data from storage and convert into Player instances. */
-  const storedPlayers = getStorageItem(PLAYERS);
-  const players = storedPlayers.map(storageToPlayer);
+  let storedPlayers = getStorageItem(name);
+  let players = parsePlayerJSON(storedPlayers, storageToPlayer);
   return players;
 }
 
@@ -427,7 +466,7 @@ export {
   Players, 
   Quiz,
   /* Export for testing only */
+  storageToPlayer,
   testPlayers,
   playerSort,
-
 }

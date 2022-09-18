@@ -249,9 +249,16 @@ button.restart {
   box-shadow: 5px 5px 5px black;
   overflow: scroll;
 }
+dialog {
+  border-radius: 6px;
+  border-width: 2px;
+}
 form.dialog-form {
   display: flex;
 }
 button.dialog-button {
   margin-bottom: 0;
+  margin-top: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
 }

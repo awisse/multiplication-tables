@@ -21,7 +21,7 @@ export const ANSWER_EV = 'answer';
 export const RESTART_EV = 'restart';
 export const SAVE_EV = 'save';
 export const LOAD_EV = 'load';
-
+export const LOAD_ERROR_EV = 'load_error';
 /* Model Events */
 export const PLAYERS_CHANGED_EV = 'players_changed';
 
@@ -36,6 +36,7 @@ export const MAX_DELETE_SCORE = 100; // Players over this can't be deleted
 
 /* Local Storage */
 export const PLAYERS = 'players';
+export const BACKUP = 'players-backup';
 
 /* Paths */
 export const IMG_PATH = './assets/img/'

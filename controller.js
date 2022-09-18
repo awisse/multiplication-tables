@@ -8,7 +8,7 @@ import {TESTING} from './constants.js';
 import {FAIL, PLAY, DELETE, MAX_COMBINATIONS} from './constants.js';
 import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, 
   RESTART_EV, SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV, 
-  PLAYERS_CHANGED_EV} from './constants.js';
+  PLAYERS_CHANGED_EV, LOAD_ERROR_EV} from './constants.js';
 import {ANSWER_DELAY} from './constants.js';
 import {Quiz} from './model.js';
 import locale from './locale/default.js';
@@ -21,6 +21,7 @@ class Controller {
 
     // Add bindings to players
     this.players.addHandler(PLAYERS_CHANGED_EV, this.onPlayersChanged);
+    this.players.addHandler(LOAD_ERROR_EV, this.handleLoadError);
 
     // Add bindings to events in view
     this.view.addHandler(ADD_PLAYER_EV, this.handleAddPlayer);
@@ -138,9 +139,20 @@ class Controller {
     this.players.savePlayersAs(anchor);
   }
 
-  loadPlayers(files) {
+  loadPlayers = files => {
     /* Load player data from a file replacing current player data */
-    this.view.showAlert(`${files.length} files selected`);
+    let file = files[0];
+    try {
+      this.players.importPlayers(file);
+    } catch (error) {
+      this.handleLoadError(msg);
+    }
+  }
+
+  handleLoadError = msg => {
+    /* An error happened during the loading of a players JSON */
+    message = `${locale.error_while_charging} : {msg}`;
+    this.view.showAlert(message);
   }
 
   handleKeyUp(event) {
@@ -170,4 +182,4 @@ class Controller {
 }
 
 
-export { Controller }
+export {Controller} 

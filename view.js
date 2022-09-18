@@ -62,10 +62,10 @@ class View {
       this.handlers[LOAD_EV](this.loadInput.files)
     }
 
-    this.loadButton.addEventListener('mousedown', pressed);
-    this.loadButton.addEventListener('mouseup', notPressed);
-    this.loadButton.addEventListener('mouseleave', notPressed);
-    this.loadInput.addEventListener('changed', loadEvent.bind(this));
+    this.loadLabel.addEventListener('mousedown', pressed);
+    this.loadLabel.addEventListener('mouseup', notPressed);
+    this.loadLabel.addEventListener('mouseleave', notPressed);
+    this.loadInput.addEventListener('change', loadEvent.bind(this));
 
   }
 
@@ -89,10 +89,10 @@ class View {
     this.loadButton = document.createElement('div', 'save-load');
     this.loadButton.id = 'load-button';
     // The Label
-    let loadLabel = createElement('label', 'save-load');
-    loadLabel.innerText = locale.loadPlayers
-    loadLabel.id = 'load-label';
-    loadLabel.htmlFor = 'load-input';
+    this.loadLabel = createElement('label', 'save-load');
+    this.loadLabel.innerText = locale.loadPlayers
+    this.loadLabel.id = 'load-label';
+    this.loadLabel.htmlFor = 'load-input';
     // The Input
     this.loadInput = document.createElement('input')
     this.loadInput.type = 'file';
@@ -101,7 +101,7 @@ class View {
     this.loadInput.accept = 'text/.json';
     hide(this.loadButton);
 
-    this.loadButton.append(loadLabel, this.loadInput);
+    this.loadButton.append(this.loadInput, this.loadLabel);
 
     this.page.append(this.loadButton);
   }
@@ -475,11 +475,11 @@ function unhide(element) {
 }
 
 function pressed(event) {
-  event.currentTarget.classList.add('pressed');
+  event.target.classList.add('pressed');
 }
 
 function notPressed(event) {
-  event.currentTarget.classList.remove('pressed');
+  event.target.classList.remove('pressed');
 }
 
 export { View }
