@@ -59,8 +59,6 @@ body:before {
 .page-header h1 {
   font-size: 1em;
   margin: 0;
-  padding: 0;
-  font-weight: 800;
   transform: scale(1.2);
 }
 h1.page-title {
@@ -71,8 +69,6 @@ div.quiz-question {
   margin: 0 0.2em 0 0.2em;
 }
 .page-content {
-  display: flex;
-  flex-direction: column;
   position: relative;
 }
 .page-content h1 {
@@ -86,7 +82,6 @@ div.quiz-question {
 #name-form {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
 }
 input[type="text"] {
   color: black;
@@ -108,7 +103,6 @@ ul {
 }
 li.names {
   display: flex;
-  flex-wrap: wrap;
   align-items: center; /* Vertical */
   justify-content: space-between;
   margin-bottom: 0.2em;
@@ -205,17 +199,16 @@ a.save-load.pressed, label.save-load.pressed {
   height: 0.8em;
   border: 2px solid white;
   border-radius: 2px;
-  width: 70%;
+  width: 80%;
 }
 .scorebox {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin: 0.5em 1em 0.5em 1em;
 }
 .quizscore {
   text-align: left;
-  width: 70%;
+  width: 80%;
 }
 /* Game over page */
 ul.results {
@@ -233,18 +226,21 @@ li.result {
 label {
   text-align: left;
   width: 45%;
-  white-space: pre;
+}
+label.quiz {
+  /* Label too wide */
+  width: 20%;
 }
 .end-result {
   width: 55%;
   text-align: right;
 }
 button.restart {
-  margin: 0 auto;
+  display: block;
+  margin: 1em auto;
 }
 #history-graph {
   background: white;
-  margin: 1em;
   border: 2px solid black;
   box-shadow: 5px 5px 5px black;
   overflow: scroll;

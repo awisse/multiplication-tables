@@ -213,7 +213,7 @@ class View {
     // Progressbar with its label
     const progressBox = createElement('div', 'scorebox');
     // Label
-    const progressLabel = createElement('label');
+    const progressLabel = createElement('label', 'quiz');
     progressLabel.htmlFor = 'progress-bar';
     progressLabel.textContent = locale.progressLabel;
     // Bar 
@@ -226,7 +226,7 @@ class View {
 
     // Score with its label
     const scoreBox = createElement('div', 'scorebox');
-    const scoreLabel = createElement('label');
+    const scoreLabel = createElement('label', 'quiz');
     scoreLabel.textContent = locale.userScore;
     this.scoreValue = createElement('span', 'quizscore');
     this.scoreValue.textContent = "0";
@@ -265,16 +265,17 @@ class View {
     const pct = Math.round(percentage * 100.0);
     addRow(locale.userPercentage, `${pct}`)
 
-    const restartButton = createElement('button', 'restart');
-    restartButton.textContent = locale.restartButton;
-
-    this.main.append(resultsBlock, restartButton);
+    this.main.append(resultsBlock);
 
     /* The canvas for the history graph (in points) */
     this.plot = new Plot2d(results, "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
     this.main.append(this.plot.canvas);
     this.plot.title = locale.plotCaption + name;
     this.plot.plot();
+
+    const restartButton = createElement('button', 'restart');
+    restartButton.textContent = locale.restartButton;
+    this.main.append(restartButton);
 
 
     function restart(event) {

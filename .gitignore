@@ -5,3 +5,4 @@ src/privacy.fragment
 .DS_Store
 *.diff
 test.*
+tests

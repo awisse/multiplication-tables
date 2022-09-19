@@ -152,19 +152,12 @@ class Players {
   }
 
   _findPlayer(name) {
-
-    let player;
-    for (let i=0; i < this.#players.length; i++) {
-      player = this.#players[i];
-      if (player.name === name) {
-        return i;
-      }
-    }
-    return -1;
+    return this.#players.findIndex(p => (p.name === name));
   }
 
   findPlayer(name) {
     let ix = this._findPlayer(name);
+    if (ix < 0) throw `findPlayer(): "${name}" not found`;
     return this.#players[ix];
   }
 
@@ -234,10 +227,6 @@ class Quiz {
 
   get pctCompleted () {
     return 1.0 - this.counter / this.sampleCount;
-  }
-
-  start() {
-    /* Start the timer and problem handler */
   }
 
   checkAnswer(answer) {
@@ -449,7 +438,9 @@ function storageToPlayer(storedPlayer) {
 
 function loadPlayers(name) {
   /* Get player data from storage and convert into Player instances. */
-  let storedPlayers = getStorageItem(name);
+  /* If localStorage is unavailable or doesn't contain player data,
+   * start with empty list of players */
+  let storedPlayers = getStorageItem(name) || "[]";
   let players = parsePlayerJSON(storedPlayers, storageToPlayer);
   return players;
 }
