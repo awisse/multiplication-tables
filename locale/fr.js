@@ -11,6 +11,7 @@ export default {
   playButtonText         : "Jouer",
   deleteButtonText       : "Effacer",
   deletedWord            : "effacé",
+  cantDelete             : "ne peut être effacé",
   noticeNoPlayer         : "Aucun joueur enregistré! Ajoutez un joueur?",
   addUser                : "Ajouter",
   userScore              : "Points",

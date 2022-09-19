@@ -67,6 +67,8 @@ class Controller {
       case DELETE: 
         if (this.players.deletePlayer(name)) {
           this.view.showAlert(`"${name}" ${locale.deletedWord}.`);
+        } else {
+          this.view.showAlert(`"${name}" ${locale.cantDelete}`);
         }
         break;
       default: 
