@@ -2,7 +2,6 @@
  * One type of graph: line graph connecting values.
  */
 import {getTickSize} from './lib/calculations.js';
-import {IMG_PATH, STAR_PNG} from './constants.js';
 
 const TICKPX = 4; // How many pixels per tick (at least)
 const TICKLEN = 3; // Length of a tickmark
@@ -37,17 +36,18 @@ class Plot2d {
   topMargin = 45; // Space reserved for title 
 
   #canvas;
+  #ctx;
+  #values;
   #titleText = "";
 
   constructor(values, id, hsize=400, vsize=300) {
-    this.values = values;
-    this.numValues = values.length;
+    this.data = values;
 
     this.#canvas = document.createElement("canvas");
     this.#canvas.width = hsize.toString();
     this.#canvas.height = vsize.toString();
     this.#canvas.id = id;
-    this.ctx = this.#canvas.getContext("2d");
+    this.#ctx = this.#canvas.getContext("2d");
 
     this.hsize = hsize;
     this.vsize = vsize;
@@ -75,11 +75,20 @@ class Plot2d {
     this.#titleText = description;
   }
 
+  set data(values) {
+    this.#values = values;
+    this.numValues = values.length;
+  }
+
+  erase() {
+    this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+  }
+
   #getYTicks() {
     /* Compute y-ticks from values. */
 
     // Calculation values
-    let values = this.values.map(p => p[1]);
+    let values = this.#values.map(p => p[1]);
     let max = Math.max(...values);
     let min = Math.min(...values);
   
@@ -114,7 +123,7 @@ class Plot2d {
     
     // Special case : `numTicks === 1`.
     if (numTicks === 1) {
-      this.xticks[0] = new Tick(this.values[0][0], this.xMinPos 
+      this.xticks[0] = new Tick(this.#values[0][0], this.xMinPos 
         + this.xPxAvailable / 2);
       return;
     }
@@ -122,51 +131,51 @@ class Plot2d {
     let offset = Math.max(0, this.numValues - maxTicks);
 
     for (let i = 0; i < numTicks; i++) {
-      this.xticks[i] = new Tick(this.values[i + offset][0], 
+      this.xticks[i] = new Tick(this.#values[i + offset][0], 
                                 this.xMinPos + i * tickPx);
     }
 
   }
 
   #plotXAxis() {
-    this.ctx.beginPath();
+    this.#ctx.beginPath();
     /* Plot the x-axis */
-    this.ctx.moveTo(this.xMinPos + 0.5, this.yMinPos);
-    this.ctx.lineTo(this.xMinPos + this.xPxAvailable + 0.5, this.yMinPos);
+    this.#ctx.moveTo(this.xMinPos + 0.5, this.yMinPos);
+    this.#ctx.lineTo(this.xMinPos + this.xPxAvailable + 0.5, this.yMinPos);
     this.#plotXTicks();
 
-    this.ctx.stroke();
+    this.#ctx.stroke();
   }
 
   #plotYAxis() {
-    this.ctx.beginPath();
+    this.#ctx.beginPath();
     /* Plot the y-axis */
-    this.ctx.moveTo(this.xMinPos, this.yMinPos - 0.5);
-    this.ctx.lineTo(this.xMinPos, this.yMinPos - this.yPxAvailable - 0.5);
+    this.#ctx.moveTo(this.xMinPos, this.yMinPos - 0.5);
+    this.#ctx.lineTo(this.xMinPos, this.yMinPos - this.yPxAvailable - 0.5);
     this.#plotYTicks();
 
-    this.ctx.stroke();
+    this.#ctx.stroke();
   }
 
   #plotXTicks() {
     this.#getXTicks();
     for (let tick of this.xticks) {
-      this.ctx.moveTo(tick.position, this.yMinPos);
-      this.ctx.lineTo(tick.position, this.yMinPos + TICKLEN);
+      this.#ctx.moveTo(tick.position, this.yMinPos);
+      this.#ctx.lineTo(tick.position, this.yMinPos + TICKLEN);
     }
   }
 
   #plotYTicks() {
     this.#getYTicks();
     
-    this.ctx.textAlign = "right";
-    this.ctx.textBaseline = "middle";
-    this.ctx.font = "10px sans-serif";
+    this.#ctx.textAlign = "right";
+    this.#ctx.textBaseline = "middle";
+    this.#ctx.font = "10px sans-serif";
     for (let tick of this.yticks) {
-      this.ctx.moveTo(this.xMinPos, tick.position);
-      this.ctx.lineTo(this.xMinPos - TICKLEN, tick.position);
+      this.#ctx.moveTo(this.xMinPos, tick.position);
+      this.#ctx.lineTo(this.xMinPos - TICKLEN, tick.position);
       // Draw the label
-      this.ctx.fillText(tick.value.toString(), this.xMinPos - TICKLEN - 2, 
+      this.#ctx.fillText(tick.value.toString(), this.xMinPos - TICKLEN - 2, 
                         tick.position);
     }
   }
@@ -175,7 +184,7 @@ class Plot2d {
     /* Compute y-position of value at index ix */
     let yRange = this.yticks.at(-1).value - this.yticks.at(0).value;
     let yPixels = this.yticks.at(-1).position - this.yticks.at(0).position;
-    let yValue = this.values[ix][1] - this.yticks[0].value;
+    let yValue = this.#values[ix][1] - this.yticks[0].value;
 
     // Cross multiplication
     let y = this.yMinPos + yValue / yRange * yPixels;
@@ -188,62 +197,48 @@ class Plot2d {
     let titleY = this.labelSpace / 2;
 
     if (this.#titleText) {
-      this.ctx.textAlign = "center";
-      this.ctx.font = "20px sans-serif";
-      this.ctx.textBaseline = "hanging";
-      this.ctx.fillText(this.#titleText, titleX, titleY);
+      this.#ctx.textAlign = "center";
+      this.#ctx.font = "20px sans-serif";
+      this.#ctx.textBaseline = "hanging";
+      this.#ctx.fillText(this.#titleText, titleX, titleY);
     }
   }
 
   #drawGraph() {
-    this.ctx.beginPath();
+    this.#ctx.beginPath();
     let xPosition = this.xticks[0].position;
     let yPosition = this.#calcY(0); // y-position of the value
     this.#circleAt(xPosition, yPosition);
-    this.ctx.moveTo(xPosition, yPosition);
+    this.#ctx.moveTo(xPosition, yPosition);
 
-    this.ctx.save();
-    this.ctx.strokeStyle = "red";
+    this.#ctx.save();
+    this.#ctx.strokeStyle = "red";
 
     for (let i = 1; i < this.xticks.length; i++) {
       xPosition = this.xticks[i].position;
       yPosition = this.#calcY(i);
-      this.ctx.lineTo(xPosition, yPosition);
+      this.#ctx.lineTo(xPosition, yPosition);
       this.#circleAt(xPosition, yPosition);
       // Move to the center of the circle after drawing it
-      this.ctx.moveTo(xPosition, yPosition);
+      this.#ctx.moveTo(xPosition, yPosition);
     }
 
-    this.ctx.stroke();
+    this.#ctx.stroke();
 
-    this.ctx.restore();
+    this.#ctx.restore();
   }
 
   #circleAt(x, y) {
     /* Draw a small circle at position x, y (a data point) */
-    this.ctx.arc(x, y, CIRCLE_RADIUS, 0, 2 * Math.PI);
+    this.#ctx.arc(x, y, CIRCLE_RADIUS, 0, 2 * Math.PI);
   }
 
-
-  drawStarAt(ix) {
-    /* Draw a small star at the value corresponding to 
-     * the index `ix` in this.values */
-    if (!this.star) {
-      /* On first run: Load the image. */
-      this.star = new Image();
-      this.star.src = IMG_PATH + STAR_PNG;
-      /* Once loaded, run the function again */
-      this.star.onload = () => this.drawStarAt(ix);
-      return;
-    }
-
-    let xPos = this.xticks[ix].position - this.star.width / 2;
-    let yPos = this.#calcY(ix) - this.star.height / 2;
-
-    this.ctx.drawImage(this.star, xPos, yPos);
+  coordsAt(ix) {
+    /* Return coordinates of plot point at index `ix` */
+    return {x: this.xticks[ix].position, y: this.#calcY(ix)}
   }
 
-  plot() {
+  draw() {
     /* Draw the axes */
     this.#plotXAxis();
     this.#plotYAxis();
@@ -254,4 +249,4 @@ class Plot2d {
   }
 }
 
-export { Plot2d };
+export { Plot2d, CIRCLE_RADIUS };

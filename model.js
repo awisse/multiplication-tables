@@ -17,14 +17,25 @@ import getRandomBetween from './random.js';
 
 class Player {
   /* A class that contains all information about a player */
+  #name;
+  #results;
+
   constructor(name, results=[], combinations=undefined) {
     /* `name` is the minimal parameter.
      * `results` and `combinations` can be known from stored results.
      */
-    this.name = name;
+    this.#name = name;
     const result = {date: Date.now(), score: 0, note: 0.0};
-    this.results = results ? results : [result];
+    this.#results = results ? results : [result];
     this.combinations = combinations ? combinations : generateMultitables();
+  }
+
+  get name() {
+    return this.#name;
+  }
+
+  get results() {
+    return this.#results;
   }
 
   get highScore() {
@@ -52,6 +63,10 @@ class Player {
     for (; this.results[i].score < hscore; i++) ;
     return i;
   }
+
+  set newResults (results) {
+    this.results.push(results);
+  }
 }
 
 class Players {
@@ -71,7 +86,7 @@ class Players {
     /* Return a JSON version of `this.#players` */
     const storagePlayers = this.#players.map(player => player.serialize);
     const jsonPlayers = JSON.stringify(storagePlayers, null, 2);
-    return jsonPlayers
+    return jsonPlayers;
   }
 
   get players() {
@@ -309,7 +324,7 @@ class Quiz {
 
     const first = this.combinations.findIndex(eq);
     const second = this.combinations.slice(first + 1).findIndex(eq);
-    if (second > 0) {
+    if (second >= 0) {
       this.combinations.splice(first, 1);
     }
   }

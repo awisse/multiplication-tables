@@ -239,11 +239,24 @@ button.restart {
   display: block;
   margin: 1em auto;
 }
+#plotbox { /* "position" must be relative in order to be a "containing block" 
+            * for the big-star */
+  position: relative; 
+  top: 0;
+  left: 0;
+  margin: 0 auto;
+  width: fit-content;
+}
 #history-graph {
   background: white;
   border: 2px solid black;
   box-shadow: 5px 5px 5px black;
   overflow: scroll;
+}
+#star {
+  position: absolute;
+  z-index: 1; /* Must be above everything else */
+  transition: all 2s cubic-bezier(0, 0, 1, 1);
 }
 dialog {
   border-radius: 6px;

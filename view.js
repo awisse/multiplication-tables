@@ -8,10 +8,11 @@ import {ADD_PLAYER_EV, PLAY_DELETE_EV, ANSWER_EV, RESTART_EV,
   SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV} from './constants.js';
 import {PLAY, DELETE, TESTING} from './constants.js';
 import {NAMES_PAGE, QUIZ_PAGE, RESULT_PAGE} from './constants.js';
-import {PLOT_WIDTH, PLOT_HEIGHT} from './constants.js';
+import {PLOT_WIDTH, PLOT_HEIGHT, STAR_SIZE} from './constants.js';
+import {IMG_PATH, STAR_PNG} from './constants.js';
 import {PLAYERS_JSON} from './constants.js';
 import {sounds} from './resources.js';
-import {Plot2d} from './graph.js';
+import {Plot2d, CIRCLE_RADIUS} from './graph.js';
 
 const HIDDEN = 0;
 const SAVE = 1;
@@ -112,37 +113,24 @@ class View {
     if (this.gameState !== NAMES_PAGE) return;
 
     this.saveLoadState = (this.saveLoadState + 1) % 3;
-    unhide(this.saveButton);
-    unhide(this.loadButton);
+    hide(this.saveButton);
+    hide(this.loadButton);
     switch (this.saveLoadState) {
-      case HIDDEN:
-        hide(this.saveButton);
       case SAVE:
-        hide(this.loadButton);
+        unhide(this.saveButton);
         break;
       case LOAD:
-        hide(this.saveButton);
+        unhide(this.loadButton);
+        break;
+      case HIDDEN:
         break;
       default:
         throw 'Must be "HIDDEN", "SAVE" or "LOAD"';
     }
   }
 
-  setupNamesPage() {
-    //
-    // No footer on start page
-    hide(this.footer);
-
-    /* Game title on top */
-    this.setTitle(locale.pageTitle);
-
-    /* Clean up page */
-    this._emptyMainSection();
-
-    /* Create start page objects ------------------------------*/
-    // Title of names page
-    this.pageHeader.textContent = locale.usersAndScores;
-    this.main.append(this.pageHeader); 
+  #setupNamesPage() {
+    /* Create all objects that are part of the Names page (start page) */
 
     // Create input box for new name with submit button
     // The Form
@@ -176,6 +164,27 @@ class View {
     this.nameList = createElement('ul', 'names');
     this.nameList.id = 'name-list';
 
+  }
+
+  showNamesPage() {
+    /* Display Names page */
+
+    if (!this.nameForm) this.#setupNamesPage();
+
+    // No footer on start page
+    hide(this.footer);
+
+    /* Game title on top */
+    this.setTitle(locale.pageTitle);
+
+    /* Clean up page */
+    this._emptyMainSection();
+
+    /* Create start page objects ------------------------------*/
+    // Title of names page
+    this.pageHeader.textContent = locale.usersAndScores;
+    this.main.append(this.pageHeader); 
+
     // Put the page together
     this.main.append(this.nameForm, this.nameList)
 
@@ -183,27 +192,14 @@ class View {
 
   }
 
-  _setupQuizPage(name) {
 
-    /* Game title on top */
-    this.setTitle(locale.pageTitle);
-
-    // Empty main page
-    this._emptyMainSection();
-    hide(this.saveButton);
-    hide(this.loadButton);
+  #setupQuizPage() {
 
     // Define Section that displays the question
     this.quizProblemDisplay = createElement('div', 'quiz-question');
 
-    // The question 
-    this.pageHeader.textContent = `${name}, ${locale.howMuchIs}`;
-    this.pageHeader.append(this.quizProblemDisplay, "?");
-    this.main.append(this.pageHeader);
-
     // Define the section that shows the proposals
     this.proposalSection = createElement('div', 'choices');
-    this.main.append(this.proposalSection);
 
     // Empty footer
     for (const element of Array.from(this.footer.children)) {
@@ -211,7 +207,7 @@ class View {
     }
 
     // Progressbar with its label
-    const progressBox = createElement('div', 'scorebox');
+    this.progressBox = createElement('div', 'scorebox');
     // Label
     const progressLabel = createElement('label', 'quiz');
     progressLabel.htmlFor = 'progress-bar';
@@ -222,17 +218,38 @@ class View {
     this.progress.max = "1";
     this.progress.value = "0";
 
-    progressBox.append(progressLabel, this.progress);
+    this.progressBox.append(progressLabel, this.progress);
 
     // Score with its label
-    const scoreBox = createElement('div', 'scorebox');
+    this.scoreBox = createElement('div', 'scorebox');
     const scoreLabel = createElement('label', 'quiz');
     scoreLabel.textContent = locale.userScore;
     this.scoreValue = createElement('span', 'quizscore');
     this.scoreValue.textContent = "0";
-    scoreBox.append(scoreLabel, this.scoreValue);
+    this.scoreBox.append(scoreLabel, this.scoreValue);
+  }
 
-    this.footer.append(progressBox, scoreBox);
+  showQuizPage(name) {
+    /* Display the Quiz page. */
+    if (!this.progressBox) this.#setupQuizPage();
+
+    // Empty main page
+    this._emptyMainSection();
+    hide(this.saveButton);
+    hide(this.loadButton);
+
+    /* Game title on top */
+    this.setTitle(locale.pageTitle);
+
+    // The question 
+    this.pageHeader.textContent = `${name}, ${locale.howMuchIs}`;
+    this.pageHeader.append(this.quizProblemDisplay, "?");
+    this.main.append(this.pageHeader);
+
+    // The proposals
+    this.main.append(this.proposalSection);
+
+    this.footer.append(this.progressBox, this.scoreBox);
     
     // Show footer, progressbar and score
     unhide(this.footer);
@@ -240,55 +257,96 @@ class View {
     this.gameState = QUIZ_PAGE;
   }
 
-  showGameOverPage(name, score, percentage, results) {
+  _setupGameOverPage() {
     /* Display the elements of the page "Game Over", displayed after the last
      * quiz question has expired or been answered. */
     // Empty the page.
-    this._emptyMainSection();
-    hide(this.footer);
+    this.resultsBlock = createElement('ul', 'results');
+    this.resultsBlock.addRow = addRow;
 
-    this.setTitle(`${name}, ${locale.gameOverHeader}`);
-
-    const resultsBlock = createElement('ul', 'results');
-
-    function addRow(label, value) {
+    function addRow(label, property) {
+      /* Adds a row with a label and a value HTMLElement to the `resultBlock` 
+       * and, if `property` is a string, sets the property to the HTMLElement 
+       * that contains the value */
       const row = createElement('li', 'result');
       const desc = createElement('label');
       const number = createElement('span', 'end-result');
       row.append(desc, number);
       desc.textContent = label;
-      number.textContent = value;
-      resultsBlock.append(row);
+      this.append(row);
+      if (typeof property === "string") this[property] = number;
     }
 
-    addRow(locale.userScore, `${score}`)
-    const pct = Math.round(percentage * 100.0);
-    addRow(locale.userPercentage, `${pct}`)
+    this.resultsBlock.addRow(locale.userScore, "finalScore")
+    this.resultsBlock.addRow(locale.userPercentage, "finalPct")
 
-    this.main.append(resultsBlock);
+    /* The box for the plot of the history graph (in points) */
+    this.plotbox = createElement("div");
+    this.plotbox.id = "plotbox";
 
-    /* The canvas for the history graph (in points) */
-    this.plot = new Plot2d(results, "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
-    this.main.append(this.plot.canvas);
-    this.plot.title = locale.plotCaption + name;
-    this.plot.plot();
+    /* The plot object itself */
+    this.plot = new Plot2d([], "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
+    this.plotbox.append(this.plot.canvas);
+    
+    /* The star */
+    this.star = new Image();
+    this.star.id = "star";
+    this.star.src = IMG_PATH + STAR_PNG;
+    hide(this.star);
 
-    const restartButton = createElement('button', 'restart');
-    restartButton.textContent = locale.restartButton;
-    this.main.append(restartButton);
+    /* Append to plotbox once loaded */
+    this.star.addEventListener("load", e => this.plotbox.prepend(this.star));
 
+    this.restartButton = createElement('button', 'restart');
+    this.restartButton.textContent = locale.restartButton;
 
+    this.playerName = Symbol("name");
     function restart(event) {
-      this.handlers[RESTART_EV](name);
+      this.handlers[RESTART_EV](event.currentTarget[this.playerName]);
     }
 
-    restartButton.addEventListener('click', restart.bind(this));
+    this.restartButton.addEventListener('click', restart.bind(this));
+
+  }
+
+  showGameOverPage(name, score, percentage, results) {
+    /* Display the Game Over Page */
+    if (!this.resultsBlock) this._setupGameOverPage();
+
+    this._emptyMainSection();
+    hide(this.footer);
+
+    this.setTitle(`${name}, ${locale.gameOverHeader}`);
+
+    const pct = Math.round(percentage * 100.0);
+    this.resultsBlock.finalScore.textContent = score;
+    this.resultsBlock.finalPct.textContent = pct;
+
+    /* Configure and draw the plot */
+    this.plot.erase();
+    this.plot.title = locale.plotCaption + name;
+    this.plot.data = results;
+    this.plot.draw();
+    
+    /* Associate the correct name with the Restart button */
+    this.restartButton[this.playerName] = name;
+
+    this.main.append(this.resultsBlock);
+    this.main.append(this.plotbox);
+    this.main.append(this.restartButton);
 
     this.gameState = RESULT_PAGE;
   }
 
   showStarAt(ix) {
-    this.plot.drawStarAt(ix);
+    /* Draw the star in position of the value at `ix` */
+
+    let x = this.plot.coordsAt(ix).x - STAR_SIZE / 2 + CIRCLE_RADIUS;
+    let y = this.plot.coordsAt(ix).y - STAR_SIZE / 2 + CIRCLE_RADIUS;
+    this.star.style.left = `${x}px`;
+    this.star.style.top = `${y}px`;
+    this.star.style.width = `${STAR_SIZE}px`;
+    unhide(this.star);
   }
 
   _resetNameInput() {
@@ -403,7 +461,7 @@ class View {
 
   play(name) {
     /* Setup play page */
-    this._setupQuizPage(name);
+    this.showQuizPage(name);
   }
 
   togglePlayDelete(state) {

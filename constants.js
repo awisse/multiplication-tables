@@ -32,6 +32,7 @@ export const ANSWER_DELAY = 1500; // Milliseconds to display answer layout
 export const CORRECT_POINTS = 10;
 export const PLOT_WIDTH = 500;
 export const PLOT_HEIGHT = 300;
+export const STAR_SIZE = 20;
 export const MAX_DELETE_SCORE = 100; // Players over this can't be deleted
 
 /* Local Storage */
@@ -40,7 +41,7 @@ export const BACKUP = 'players-backup';
 
 /* Paths */
 export const IMG_PATH = './assets/img/'
-export const STAR_PNG = 'star-24x24.png';
+export const STAR_PNG = 'star.png';
 export const PLAYERS_JSON = 'players.json';
 
 /* States */

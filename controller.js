@@ -38,7 +38,7 @@ class Controller {
   }
 
   start() {
-    this.view.setupNamesPage();
+    this.view.showNamesPage();
     this.view.refreshNamesList(this.players.players);
   }
 
