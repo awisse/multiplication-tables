@@ -58,7 +58,8 @@ class Player {
 
   get highScoreIX () {
     /* Return the first index where the highScore has been reached */
-    let hscore = this.highScore;
+    if (this.results.length === 0) return; // undefined 
+    const hscore = this.highScore;
     let i = 0;
     for (; this.results[i].score < hscore; i++) ;
     return i;

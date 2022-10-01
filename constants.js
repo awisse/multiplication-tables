@@ -28,11 +28,13 @@ export const PLAYERS_CHANGED_EV = 'players_changed';
 /* Parameters */
 export const MAX_COMBINATIONS = 5; // Number of combinations to be asked
 export const TIMEOUT = 10000; // Milliseconds before next question
+export const MOVE_STAR_DELAY = 1000; // Milliseconds before the star moves
 export const ANSWER_DELAY = 1500; // Milliseconds to display answer layout
 export const CORRECT_POINTS = 10;
 export const PLOT_WIDTH = 500;
 export const PLOT_HEIGHT = 300;
 export const STAR_SIZE = 20;
+export const BIG_STAR_SIZE = 0.9; /* Percentage of plot area */
 export const MAX_DELETE_SCORE = 100; // Players over this can't be deleted
 
 /* Local Storage */

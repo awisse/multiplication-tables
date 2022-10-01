@@ -8,7 +8,8 @@ import {ADD_PLAYER_EV, PLAY_DELETE_EV, ANSWER_EV, RESTART_EV,
   SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV} from './constants.js';
 import {PLAY, DELETE, TESTING} from './constants.js';
 import {NAMES_PAGE, QUIZ_PAGE, RESULT_PAGE} from './constants.js';
-import {PLOT_WIDTH, PLOT_HEIGHT, STAR_SIZE} from './constants.js';
+import {PLOT_WIDTH, PLOT_HEIGHT, STAR_SIZE, BIG_STAR_SIZE} 
+  from './constants.js';
 import {IMG_PATH, STAR_PNG} from './constants.js';
 import {PLAYERS_JSON} from './constants.js';
 import {sounds} from './resources.js';
@@ -347,6 +348,39 @@ class View {
     this.star.style.top = `${y}px`;
     this.star.style.width = `${STAR_SIZE}px`;
     unhide(this.star);
+  }
+
+  moveStarTo(ix) {
+    /* Move the star from its present position to the position of the 
+     * index `ix` */
+
+    /* From current position of star:
+     * 1. Increase to full plotbox size rotating once.
+     * 2. Rotate once at full size.
+     * 3. Move to final position (ix) while decreasing to final size.
+     */
+    let fromX = this.star.offsetLeft - STAR_SIZE / 2 + CIRCLE_RADIUS;
+    let fromY = this.star.offsetTop - STAR_SIZE / 2 + CIRCLE_RADIUS;
+    let toX = this.plot.coordsAt(ix).x - STAR_SIZE / 2 + CIRCLE_RADIUS;
+    let toY = this.plot.coordsAt(ix).y - STAR_SIZE / 2 + CIRCLE_RADIUS;
+    let midWidth = this.plot.hsize * BIG_STAR_SIZE;
+    let midX = (fromX + toX - midWidth) / 2;
+    let midY = (fromY + toY - midWidth) / 2;
+
+    function goto_final(event) {
+      /* Event listener: this = event.currentTarget */
+      this.style.left = `${toX}px`;
+      this.style.top = `${toY}px`;
+      this.style.width = `${STAR_SIZE}px`;
+      this.style.transform = "rotate(0)";
+      this.removeEventListener("transitionend", goto_final);
+    }
+
+    this.star.style.left = `${midX}px`;
+    this.star.style.top = `${midY}px`;
+    this.star.style.width = `${midWidth}px`;
+    this.star.style.transform = "rotate(1turn)";
+    this.star.addEventListener("transitionend", goto_final)
   }
 
   _resetNameInput() {

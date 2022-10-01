@@ -9,7 +9,7 @@ import {FAIL, PLAY, DELETE, MAX_COMBINATIONS} from './constants.js';
 import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, 
   RESTART_EV, SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV, 
   PLAYERS_CHANGED_EV, LOAD_ERROR_EV} from './constants.js';
-import {ANSWER_DELAY} from './constants.js';
+import {ANSWER_DELAY, MOVE_STAR_DELAY} from './constants.js';
 import {Quiz} from './model.js';
 import locale from './locale/default.js';
 
@@ -80,7 +80,7 @@ class Controller {
     /* Quiz start code here */
     const combinations =  this.players.getCombinations(name);
     this.quiz = new Quiz(name, MAX_COMBINATIONS, combinations);
-    this.quiz.bindTimeout(this.handleFail.bind(this));
+    this.quiz.bindTimeout(this.handleFail);
     this.quiz.bindGameOver(this.gameOver);
     this.view.play(name);
     this.newProblem();
@@ -110,15 +110,24 @@ class Controller {
 
   gameOver = (name, score, percentage) => {
     /* Display final score, save results and update player score */
+    // Get information about the scores of the player `name`
+    const player = this.players.findPlayer(name);
+    const prevHSIX = player.highScoreIX; // `undefined` if first game
+
+    /* Update the list of the player scores and save the results and
+     * combinations. */
     this.players.updateResults(name, score, percentage);
     this.players.savePlayers();
-    this.view.showGameOverPage(name, score, percentage,
-                               this.players.getScoreArray(name));
-    /* Display a star at first high score if more than 1 score */
-    let player = this.players.findPlayer(name);
-    if (player.results.length > 1) {
-      let ix = player.highScoreIX;
-      this.view.showStarAt(ix);
+
+    // Display the historical plot of the player scores
+    const scores = this.players.getScoreArray(name);
+    this.view.showGameOverPage(name, score, percentage, scores);
+
+    /* Display a star at previous high score if more than 1 score */
+    const hsIX = player.highScoreIX;
+    this.view.showStarAt(prevHSIX || hsIX);
+    if (prevHSIX && scores[hsIX][1] > scores[prevHSIX][1]) {
+      setTimeout(this.view.moveStarTo.bind(this.view), MOVE_STAR_DELAY, hsIX);
     }
   }
 
