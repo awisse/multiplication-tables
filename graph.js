@@ -63,6 +63,10 @@ class Plot2d {
     return this.#canvas;
   }
 
+  get rect() {
+    return this.#canvas.getBoundingClientRect();
+  }
+
   set className(name) {
     this.#canvas.classList.add(name);
   }

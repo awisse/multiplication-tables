@@ -6,13 +6,14 @@
 import locale from './locale/default.js';
 import {ADD_PLAYER_EV, PLAY_DELETE_EV, ANSWER_EV, RESTART_EV,
   SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV} from './constants.js';
-import {PLAY, DELETE, TESTING} from './constants.js';
+import {PLAY, DELETE, TESTING, MOVE_STAR_DELAY} from './constants.js';
 import {NAMES_PAGE, QUIZ_PAGE, RESULT_PAGE} from './constants.js';
 import {PLOT_WIDTH, PLOT_HEIGHT, STAR_SIZE, BIG_STAR_SIZE} 
   from './constants.js';
-import {IMG_PATH, STAR_PNG} from './constants.js';
+import {IMG_PATH, STAR_PNG, HPCT_PNG} from './constants.js';
+import {PASS_SND, FAIL_SND, APPLAUSE_SND, CHEERING_SND, WARNING_SND} 
+ from './constants.js';
 import {PLAYERS_JSON} from './constants.js';
-import {sounds} from './resources.js';
 import {Plot2d, CIRCLE_RADIUS} from './graph.js';
 
 const HIDDEN = 0;
@@ -34,11 +35,16 @@ class View {
 
     this.handlers = {};
 
-    this._addSaveButton();
-    this._addLoadButton();
+    this.#addSaveButton();
+    this.#addLoadButton();
+
+    // Load the sounds
+    this.sounds = loadSounds();
 
     this.saveLoadState = HIDDEN;
     this.gameState = undefined;
+    this.star = undefined;
+    this.hundredPct = undefined;
 
   }
 
@@ -71,7 +77,7 @@ class View {
 
   }
 
-  _addSaveButton () {
+  #addSaveButton () {
 
     // Add Save Players button
     this.saveButton = createElement('a', 'save-load');
@@ -84,7 +90,7 @@ class View {
 
   }
 
-  _addLoadButton() {
+  #addLoadButton() {
 
     // Add Load Button: An input element
     // The Container
@@ -156,7 +162,7 @@ class View {
       event.preventDefault();
       if (this.nameInput.value) {
         this.handlers[ADD_PLAYER_EV](this.nameInput.value);
-        this._resetNameInput();
+        this.#resetNameInput();
       }
     }
     this.nameForm.addEventListener('submit', handleSubmit);
@@ -179,7 +185,7 @@ class View {
     this.setTitle(locale.pageTitle);
 
     /* Clean up page */
-    this._emptyMainSection();
+    this.#emptyMainSection();
 
     /* Create start page objects ------------------------------*/
     // Title of names page
@@ -235,7 +241,7 @@ class View {
     if (!this.progressBox) this.#setupQuizPage();
 
     // Empty main page
-    this._emptyMainSection();
+    this.#emptyMainSection();
     hide(this.saveButton);
     hide(this.loadButton);
 
@@ -258,45 +264,61 @@ class View {
     this.gameState = QUIZ_PAGE;
   }
 
-  _setupGameOverPage() {
+  #loadStar() {
+    /* Load the Star Image File and Insert It into the plotbox */
+    if (this.star) return;
+
+    this.star = new Image();
+    this.star.id = "star";
+    this.star.src = IMG_PATH + STAR_PNG;
+
+    hide(this.star);
+    this.plotbox.prepend(this.star);
+  }
+
+  #load100pct() {
+    /* Load the Star Image File */
+    if (this.hundredPct) return;
+
+    this.hundredPct = new Image();
+    this.hundredPct.id = "hundredPct";
+    this.hundredPct.src = IMG_PATH + HPCT_PNG;
+
+    hide(this.hundredPct);
+    this.finalPct.before(this.hundredPct);
+    this.hundredPct.addEventListener("load", e => this.#show100pct());
+  }
+
+  #setupGameOverPage() {
     /* Display the elements of the page "Game Over", displayed after the last
      * quiz question has expired or been answered. */
     // Empty the page.
     this.resultsBlock = createElement('ul', 'results');
-    this.resultsBlock.addRow = addRow;
 
-    function addRow(label, property) {
+    function addRow(list, label) {
       /* Adds a row with a label and a value HTMLElement to the `resultBlock` 
-       * and, if `property` is a string, sets the property to the HTMLElement 
-       * that contains the value */
+       * and, returns the HTMLElement that contains the value */
       const row = createElement('li', 'result');
       const desc = createElement('label');
+      const numDiv = createElement('div', 'relativebox');
       const number = createElement('span', 'end-result');
-      row.append(desc, number);
+      numDiv.append(number);
+      row.append(desc, numDiv);
       desc.textContent = label;
-      this.append(row);
-      if (typeof property === "string") this[property] = number;
+      list.append(row);
+      return number;
     }
 
-    this.resultsBlock.addRow(locale.userScore, "finalScore")
-    this.resultsBlock.addRow(locale.userPercentage, "finalPct")
+    this.finalScore = addRow(this.resultsBlock, locale.userScore);
+    this.finalPct = addRow(this.resultsBlock, locale.userPercentage);
 
-    /* The box for the plot of the history graph (in points) */
+    /* The box for the plot of the history graph (in score points) */
     this.plotbox = createElement("div");
-    this.plotbox.id = "plotbox";
+    this.plotbox.classList.add("relativebox");
 
     /* The plot object itself */
     this.plot = new Plot2d([], "history-graph", PLOT_WIDTH, PLOT_HEIGHT);
     this.plotbox.append(this.plot.canvas);
-    
-    /* The star */
-    this.star = new Image();
-    this.star.id = "star";
-    this.star.src = IMG_PATH + STAR_PNG;
-    hide(this.star);
-
-    /* Append to plotbox once loaded */
-    this.star.addEventListener("load", e => this.plotbox.prepend(this.star));
 
     this.restartButton = createElement('button', 'restart');
     this.restartButton.textContent = locale.restartButton;
@@ -312,16 +334,20 @@ class View {
 
   showGameOverPage(name, score, percentage, results) {
     /* Display the Game Over Page */
-    if (!this.resultsBlock) this._setupGameOverPage();
+    if (!this.resultsBlock) this.#setupGameOverPage();
 
-    this._emptyMainSection();
+    this.#emptyMainSection();
+    this.finalPct.classList.remove('gold');
     hide(this.footer);
 
     this.setTitle(`${name}, ${locale.gameOverHeader}`);
 
     const pct = Math.round(percentage * 100.0);
-    this.resultsBlock.finalScore.textContent = score;
-    this.resultsBlock.finalPct.textContent = pct;
+    if (pct === 1.0) this.finalPct.classList.add('gold');
+
+    this.finalScore.textContent = score;
+    this.finalPct.textContent = pct;
+    
 
     /* Configure and draw the plot */
     this.plot.erase();
@@ -337,57 +363,155 @@ class View {
     this.main.append(this.restartButton);
 
     this.gameState = RESULT_PAGE;
+
   }
 
   showStarAt(ix) {
-    /* Draw the star in position of the value at `ix` */
+    this.main.classList.add("wait");
 
+    if (!this.star) {
+      this.#loadStar();
+      this.star.addEventListener("load", e => this.#showStarAt(ix));
+      /* Check whether the star has finished loading */
+    } else if (this.star.complete && this.star.naturalWidth > 0) {
+      /* `this.star` already loaded. We must force the "load" event. */
+      this.#showStarAt(ix);
+    }
+  }
+
+  #showStarAt(ix) {
+    /* Draw the star in position of the value at `ix` */
     let x = this.plot.coordsAt(ix).x - STAR_SIZE / 2 + CIRCLE_RADIUS;
     let y = this.plot.coordsAt(ix).y - STAR_SIZE / 2 + CIRCLE_RADIUS;
     this.star.style.left = `${x}px`;
     this.star.style.top = `${y}px`;
     this.star.style.width = `${STAR_SIZE}px`;
+    this.main.classList.remove('spin');
     unhide(this.star);
   }
 
-  moveStarTo(ix) {
+  moveStarTo(ix, hundredPctRunning) {
     /* Move the star from its present position to the position of the 
      * index `ix` */
 
+    /* If `this.hundredPct` is displayed, wait for it to finish before moving 
+     * star. */
     /* From current position of star:
      * 1. Increase to full plotbox size rotating once.
      * 2. Rotate once at full size.
      * 3. Move to final position (ix) while decreasing to final size.
      */
-    let fromX = this.star.offsetLeft - STAR_SIZE / 2 + CIRCLE_RADIUS;
-    let fromY = this.star.offsetTop - STAR_SIZE / 2 + CIRCLE_RADIUS;
-    let toX = this.plot.coordsAt(ix).x - STAR_SIZE / 2 + CIRCLE_RADIUS;
-    let toY = this.plot.coordsAt(ix).y - STAR_SIZE / 2 + CIRCLE_RADIUS;
-    let midWidth = this.plot.hsize * BIG_STAR_SIZE;
-    let midX = (fromX + toX - midWidth) / 2;
-    let midY = (fromY + toY - midWidth) / 2;
+    /* `.bind(this)` returns a new function. In order to be able to 
+     * `.removeEventListener`, we have to define the new bound function */
+    const thisMoveStar = moveStar.bind(this);
 
-    function goto_final(event) {
-      /* Event listener: this = event.currentTarget */
-      this.style.left = `${toX}px`;
-      this.style.top = `${toY}px`;
-      this.style.width = `${STAR_SIZE}px`;
-      this.style.transform = "rotate(0)";
-      this.removeEventListener("transitionend", goto_final);
+    if (hundredPctRunning) {
+      // Wait for animation of `this.hundredPct` to finish
+      this.hundredPct.addEventListener("transitionend", thisMoveStar);
+    } else {
+      setTimeout(thisMoveStar, MOVE_STAR_DELAY);
     }
 
-    this.star.style.left = `${midX}px`;
-    this.star.style.top = `${midY}px`;
-    this.star.style.width = `${midWidth}px`;
-    this.star.style.transform = "rotate(1turn)";
-    this.star.addEventListener("transitionend", goto_final)
+    function moveStar(e) {
+      /* Prevent event from moving star in subsequent games without
+       * new high score */
+      this.hundredPct.removeEventListener("transitionend", thisMoveStar);
+
+      this.sounds.cheering.play();
+      let fromX = this.star.offsetLeft - STAR_SIZE / 2 + CIRCLE_RADIUS;
+      let fromY = this.star.offsetTop - STAR_SIZE / 2 + CIRCLE_RADIUS;
+      let toX = this.plot.coordsAt(ix).x - STAR_SIZE / 2 + CIRCLE_RADIUS;
+      let toY = this.plot.coordsAt(ix).y - STAR_SIZE / 2 + CIRCLE_RADIUS;
+      let midWidth = this.plot.hsize * BIG_STAR_SIZE;
+      let midX = (fromX + toX - midWidth) / 2;
+      let midY = (fromY + toY - midWidth) / 2;
+
+      function goto_final(event) {
+        /* Event listener: this = event.currentTarget */
+        this.style.left = `${toX}px`;
+        this.style.top = `${toY}px`;
+        this.style.width = `${STAR_SIZE}px`;
+        this.style.transform = "rotate(0)";
+        this.removeEventListener("transitionend", goto_final);
+      }
+
+      this.star.style.left = `${midX}px`;
+      this.star.style.top = `${midY}px`;
+      this.star.style.width = `${midWidth}px`;
+      this.star.style.transform = "rotate(1turn)";
+      this.star.addEventListener("transitionend", goto_final)
+    }
   }
 
-  _resetNameInput() {
+  #draw100pct() {
+    /* Draw the 100% once loaded.
+     * Get the boxes of `page`, `main` and `finalPct` for calculations */
+    const pageBox = this.page.getBoundingClientRect();
+    const mainBox = this.main.getBoundingClientRect();
+    const fPctBox = this.finalPct.getBoundingClientRect();
+
+    // Scaling 100% to the size of the page
+    const width = pageBox.width;
+    const height = this.hundredPct.naturalHeight / 
+      this.hundredPct.naturalWidth * width;
+    
+    /* Positioning in the center of the mainBox.
+     * Computing vertical and horizontal offsets. */
+    const voffset = mainBox.height / 2 + mainBox.y  - fPctBox.y - height / 2;
+    const hoffset = -fPctBox.x;
+
+    this.hundredPct.style.width = `${width}px`;
+    this.hundredPct.style.left = `${hoffset}px`;
+    this.hundredPct.style.top = `${voffset}px`;
+
+    return fPctBox.height / height * width;
+  }
+
+  show100pct() {
+    /* Show 100% full screen and disappear towards the number 100 */
+    this.main.classList.add("wait");
+    
+    if (!this.hundredPct) this.#load100pct();
+
+    // If `this.hundredPct` is already loaded, we must force the "load" event
+    if (this.hundredPct.complete && this.hundredPct.naturalWidth > 0) {
+      let loadEV = new Event("load");
+      this.hundredPct.dispatchEvent(loadEV);
+    }
+  }
+
+  #show100pct() {
+      
+    this.main.classList.remove("wait");
+    const finalWidth = this.#draw100pct();
+    unhide(this.hundredPct);
+    this.sounds.applause.play();
+
+    this.hundredPct.addEventListener('transitionend', disappear);
+    // Need a timeout directly after an `unhide` (in #draw100pct()). See:
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Transitions/Using_CSS_transitions#javascript_examples
+    setTimeout(reduce, 90);
+
+    function disappear(e) {
+      /* `this` is `this.hundredPct` */
+      this.removeEventListener('transitionend', disappear);
+      // nextElementSibling is `this.finalPct`.
+      this.nextElementSibling.classList.add('gold');
+      hide(this);
+    }
+
+    function reduce() {
+      this.hundredPct.style.width = `${finalWidth}px`;
+      this.hundredPct.style.left = "0px";
+      this.hundredPct.style.top = "0px";
+    }
+  }
+    
+  #resetNameInput() {
     this.nameInput.value = ""
   }
 
-  _emptyMainSection() {
+  #emptyMainSection() {
     /* Remove all elements from the main section. */
     for (const element of Array.from(this.main.children)) {
         this.main.removeChild(element)
@@ -418,11 +542,14 @@ class View {
       names.forEach(player => {
         const li = createElement('li', 'names');
 
+        const namescore = createElement('div', 'namescore');
+
         const label = createElement('label');
         label.textContent = player.name;
 
         const score = createElement('span', 'userscore');
         score.textContent = player.highScore;
+        namescore.append(label, score);
 
         const playButton = createElement('button', 'play');
         playButton.textContent = locale.playButtonText;
@@ -435,7 +562,7 @@ class View {
         }
         playButton.addEventListener('click', handler)
 
-        li.append(label, score, playButton);
+        li.append(namescore, playButton);
         this.nameList.append(li);
       });
     }
@@ -471,13 +598,13 @@ class View {
 
   displaySuccess(button) {
     /* Show display of correct answer: Increase size of button. */
-    sounds.pass.play();
+    this.sounds.pass.play();
     button.classList.add("is-clicked", "is-correct");
   }
 
-  displayFailedAnswerCorrectly(correctAnswer) {
+  highlightCorrectAnswer(correctAnswer) {
     /* Highlight correct answer after wrong answer given by player */
-    sounds.fail.play();
+    this.sounds.fail.play();
     for (const button of Array.from(this.proposalSection.children)) {
       if (parseInt(button.value, 10) === correctAnswer) {
         button.classList.add("is-correct");
@@ -528,6 +655,7 @@ class View {
 
   showAlert(message) {
     /* TODO: More sophisticated dialogs in the future */
+    this.sounds.warning.play();
     showDialog(message);
   }
 }
@@ -574,5 +702,18 @@ function pressed(event) {
 function notPressed(event) {
   event.target.classList.remove('pressed');
 }
+
+function loadSounds() {
+/* Sounds to play with game */
+  const sounds = {
+    pass: new Audio(PASS_SND), 
+    fail: new Audio(FAIL_SND),
+    applause: new Audio(APPLAUSE_SND),
+    cheering: new Audio(CHEERING_SND),
+    warning: new Audio(WARNING_SND)
+  }
+  return sounds;
+}
+
 
 export { View }

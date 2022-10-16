@@ -9,7 +9,7 @@ import {FAIL, PLAY, DELETE, MAX_COMBINATIONS} from './constants.js';
 import {ADD_PLAYER_EV, PLAY_DELETE_EV, DELETE_ALL_EV, ANSWER_EV, 
   RESTART_EV, SAVE_EV, KEY_DOWN_EV, KEY_UP_EV, LOAD_EV, 
   PLAYERS_CHANGED_EV, LOAD_ERROR_EV} from './constants.js';
-import {ANSWER_DELAY, MOVE_STAR_DELAY} from './constants.js';
+import {ANSWER_DELAY} from './constants.js';
 import {Quiz} from './model.js';
 import locale from './locale/default.js';
 
@@ -97,7 +97,7 @@ class Controller {
      * 1. Player took too long.
      * 2. Player chose wrong answer */
     this.view.disableProposalButtons(); // Prevent clicking after timeout
-    this.view.displayFailedAnswerCorrectly(this.quiz.problem.solution);
+    this.view.highlightCorrectAnswer(this.quiz.problem.solution);
     const timeout = setTimeout(this.newProblem, ANSWER_DELAY);
   }
 
@@ -123,11 +123,18 @@ class Controller {
     const scores = this.players.getScoreArray(name);
     this.view.showGameOverPage(name, score, percentage, scores);
 
-    /* Display a star at previous high score if more than 1 score */
+    /* Display a star at score if first result 
+     * If more than 1 score, display a star at previous high score. */
     const hsIX = player.highScoreIX;
-    this.view.showStarAt(prevHSIX || hsIX);
-    if (prevHSIX && scores[hsIX][1] > scores[prevHSIX][1]) {
-      setTimeout(this.view.moveStarTo.bind(this.view), MOVE_STAR_DELAY, hsIX);
+    this.view.showStarAt(prevHSIX === undefined? hsIX : prevHSIX);
+
+    /* Display and animate 100% if the player has answered all questions 
+     * correctly. */
+    if (percentage === 1.0) this.view.show100pct();
+    
+    /* If new high score, move star to new high score. */
+    if (prevHSIX !== undefined && scores[hsIX][1] > scores[prevHSIX][1]) {
+      this.view.moveStarTo(hsIX, percentage === 1.0);
     }
   }
 

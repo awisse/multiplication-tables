@@ -17,7 +17,7 @@ export default {
   userScore              : "Points",
   userPercentage         : "Note (%)",
   progressLabel          : "Avancement",
-  gameOverHeader         : "ton résultat:",
+  gameOverHeader         : "ton résultat :",
   restartButton          : "Recommencer",
   plotCaption            : "Historique pour ",
   savePlayers            : "Sauvegarder",

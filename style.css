@@ -42,12 +42,6 @@ body:before {
   background-size: cover;
   opacity: 0.2;
 }
-/* Adapting font size for small screens */
-@media screen and (max-width: 600px) {
-  body {
-    font-size: 7vw;
-  }
-}
 .page {
   display: flex;
   flex-direction: column;
@@ -63,6 +57,7 @@ body:before {
 }
 h1.page-title {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
 }
 div.quiz-question {
@@ -82,11 +77,13 @@ div.quiz-question {
 #name-form {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 input[type="text"] {
   color: black;
   font-size: 0.7em;
   margin-right: 1rem;
+  width: 70%;
 }
 input[type="text"]:focus {
   background: white;
@@ -107,9 +104,13 @@ li.names {
   justify-content: space-between;
   margin-bottom: 0.2em;
 }
-.userscore {
+.namescore {
+  display: flex;
+  justify-content: space-between;
   margin-right: 1rem;
-  width: 25%;
+  width: 80%;
+}
+.userscore {
   text-align: right;
 }
 button {
@@ -148,9 +149,12 @@ input[type='file'] {
 a.save-load.pressed, label.save-load.pressed {
   border-style: inset;
 }
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 500px) {
   .page-footer {
     font-size: 5vw;
+  }
+  .relativebox {
+    width: 100%
   }
 }
 .question {
@@ -199,16 +203,17 @@ a.save-load.pressed, label.save-load.pressed {
   height: 0.8em;
   border: 2px solid white;
   border-radius: 2px;
-  width: 80%;
+  width: 70%;
 }
 .scorebox {
   display: flex;
   align-items: center;
   margin: 0.5em 1em 0.5em 1em;
+  justify-content: space-between;
 }
 .quizscore {
   text-align: left;
-  width: 80%;
+  width: 70%;
 }
 /* Game over page */
 ul.results {
@@ -225,38 +230,39 @@ li.result {
 }
 label {
   text-align: left;
-  width: 45%;
 }
 label.quiz {
   /* Label too wide */
   width: 20%;
 }
 .end-result {
-  width: 55%;
   text-align: right;
 }
-button.restart {
-  display: block;
-  margin: 1em auto;
+.gold {
+  color: #ffd700;
 }
-#plotbox { /* "position" must be relative in order to be a "containing block" 
-            * for the big-star */
+.relativebox { 
+  /* "position" must be relative in order to be a "containing block" 
+   * for the big-star */
   position: relative; 
-  top: 0;
-  left: 0;
-  margin: 0 auto;
-  width: fit-content;
 }
 #history-graph {
   background: white;
   border: 2px solid black;
   box-shadow: 5px 5px 5px black;
-  overflow: scroll;
 }
 #star {
   position: absolute;
   z-index: 1; /* Must be above everything else */
   transition: all 2s cubic-bezier(0, 0, 1, 1);
+}
+#hundredPct {
+  position: absolute;
+  z-index: 2;
+  transition: all 6s cubic-bezier(.25,-.25,.8,.3);
+}
+.spin {
+  cursor: wait;
 }
 dialog {
   border-radius: 6px;
