@@ -23,12 +23,12 @@ export default {
   savePlayers            : "Sauvegarder",
   loadPlayers            : "Importer",
   /* Error Messages */
-  error_while_charging   : "Erreur",
+  error_during_import    : "Erreur d'import",
   no_error               : "Réussi",
   parse_error            : "JSON non accepté",
   no_array_error         : " n'est pas un array",
-  no_object_error         : " n'est pas un objet",
-  no_string_error         : " n'est pas une chaîne de caractères",
-  no_number_error         : " n'est pas un chiffre",
-  missing_key_error      : ": clef manquante dans l'objet",
+  no_object_error        : " n'est pas un objet",
+  no_string_error        : " n'est pas une chaîne de caractères",
+  no_number_error        : " n'est pas un chiffre",
+  missing_key_error      : "Clef manquante dans l'objet: ",
 }
