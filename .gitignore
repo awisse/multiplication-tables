@@ -7,3 +7,4 @@ src/privacy.fragment
 *.diff
 test.*
 tests
+favicon.ico
