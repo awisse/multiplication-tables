@@ -253,12 +253,12 @@ label.quiz {
 }
 #star {
   position: absolute;
-  z-index: 1; /* Must be above everything else */
+  z-index: 1; /* Must be above the other HTML Elements on the page */
   transition: all 2s cubic-bezier(0, 0, 1, 1);
 }
 #hundredPct {
   position: absolute;
-  z-index: 2;
+  z-index: 2; /* Must be even above the star during animation */
   transition: all 6s cubic-bezier(.25,-.25,.8,.3);
 }
 .spin {
