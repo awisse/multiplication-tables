@@ -1,3 +1,7 @@
-import locale from './fr.js';
+import fr from "./fr.js"
+// import en from "./en.js"
 
-export default locale
+export default {
+  fr
+  // en
+}
