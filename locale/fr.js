@@ -1,7 +1,11 @@
 /* eslint-disable key-spacing */
 export default {
+  yes:                     "Oui",
+  no:                      "Non",
   addUser:                 "Ajouter",
+  allDeleted:              "Tous les joueurs sont effacés!",
   cantDelete:              "ne peut être effacé",
+  confirmDeleteAll:        "Êtes-vous sûr de vouloir effacer tous les joueurs?",
   deleteButtonText:        "Effacer",
   deletedWord:             "effacé",
   endMessage:              "Ton pourcentage de réussite est de %d",

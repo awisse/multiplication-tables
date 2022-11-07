@@ -1,7 +1,7 @@
-import fr from "./fr.js"
-import en from "./en.js"
+import FR from "./fr.js"
+import EN from "./en.js"
 
 export default {
-  fr,
-  en
+  FR,
+  EN
 }
