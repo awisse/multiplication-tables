@@ -5,6 +5,7 @@ export default {
   addUser:                 "Add",
   allDeleted:              "All Players Have Been Deleted!",
   cantDelete:              "can't be deleted",
+  changePlayer:            "Change Player",
   confirmDeleteAll:        "Are you sure you want to delete all players?",
   deleteButtonText:        "Delete",
   deletedWord:             "deleted",

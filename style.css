@@ -272,6 +272,11 @@ label.quiz {
 .spin {
   cursor: wait;
 }
+div.buttonbox {
+  display: flex;
+  justify-content: space-evenly;
+  padding: 0.5em;
+}
 dialog {
   border-radius: 6px;
   border-width: 2px;

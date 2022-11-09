@@ -5,6 +5,7 @@ export default {
   addUser:                 "Ajouter",
   allDeleted:              "Tous les joueurs sont effacés!",
   cantDelete:              "ne peut être effacé",
+  changePlayer:            "Autre Joueur",
   confirmDeleteAll:        "Êtes-vous sûr de vouloir effacer tous les joueurs?",
   deleteButtonText:        "Effacer",
   deletedWord:             "effacé",
