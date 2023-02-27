@@ -46,7 +46,7 @@ This is a simple multiplication table quiz web app. Inspired by
 10. Another "hidden" feature (Alt-Shift: Watch the buttons next to the players)
     allows the deletion of a player as long as her score is below 100
     (can't delete your sister because her
-    score is better than yours ). This is mostly to allow immediate deletion
+    score is better than yours :smirk:). This is mostly to allow immediate deletion
     of a misspelled newly added player name. A player can always be deleted
     by **carefully** modifying the exported JSON database and reimporting it.
 
