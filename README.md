@@ -41,7 +41,8 @@ This is a simple multiplication table quiz web app. Inspired by
    allows exporting the user/result database in JSON format. This
    database can then be imported on another computer (CTRL-META-s twice).
    Pressing (CTRL-META-s) repeatedly cycles through "Save...", "Import..."
-   and hidden.
+   and hidden. There are a few syntax checks during import. The file won't be
+   accepted and doesn't overwrite anything if it can't be parsed properly.
 
 10. Another "hidden" feature (Alt-Shift: Watch the buttons next to the players)
     allows the deletion of a player as long as her score is below 100
@@ -50,6 +51,10 @@ This is a simple multiplication table quiz web app. Inspired by
     of a misspelled newly added player name. A player can always be deleted
     by **carefully** modifying the exported JSON database and reimporting it.
 
+11. **For experts**: A backup copy of the JSON database is kept in `localStorage` when
+    a JSON file is imported. There is presently no user interface option to recover 
+    this backup. A confirmation dialog will be needed as the user can easily overwrite 
+    recent results with a possibly very old backup.
 
 
 ## Why
